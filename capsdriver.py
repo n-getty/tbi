@@ -11,16 +11,17 @@ import fnmatch
 import pandas as pd
 import argparse
 from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D, Input
+from keras.layers import Conv2D, MaxPooling2D, Conv3D, MaxPooling3D,Input
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model
 from keras import callbacks, optimizers
+from skimage.transform import resize
 
 
 def params():
     # setting the hyper parameters
-    parser = argparse.ArgumentParser(description="Capsule Network on MNIST.")
-    parser.add_argument('--epochs', default=60, type=int)
+    parser = argparse.ArgumentParser(description="Capsule Network on brain tumor classification.")
+    parser.add_argument('--epochs', default=30, type=int)
     parser.add_argument('--batch_size', default=100, type=int)
     parser.add_argument('--lr', default=0.001, type=float,
                         help="Initial learning rate")
@@ -71,7 +72,7 @@ def load_tumor():
         l[label - 1] = 1
         y.append(l)
 
-    X = np.stack(X).reshape(len(X), 64, 64, 1).astype('float32') / 255
+    X = np.stack(X).reshape(len(X), 64, 64, 1).astype('float64') / 255
     y = np.stack(y)
 
     tts_split = train_test_split(
@@ -100,16 +101,17 @@ def load_tbi():
 
 
 def load_control():
-    # fn = '/vol/ml/ngetty/control/ABIDE/'
-    fn = '/Users/ngetty/Downloads/control/ABIDE/'
+    fn = '/vol/ml/ngetty/control/ABIDE/'
+    #fn = '/Users/ngetty/Downloads/control/ABIDE/'
     ids = []
     X = []
-    for root, dirnames, filenames in os.walk('src'):
+    for root, dirnames, filenames in os.walk(fn):
         for filename in fnmatch.filter(filenames, '*.nii'):
             fn = os.path.join(root, filename)
             img = nib.load(fn)
             img_data = img.get_data()
             ids.append(filename[7:12])
+            img_data = resize(img_data, (64, 64, 64))
             X.append(img_data)
 
     X = np.stack(X).reshape(len(X), 170, 256, 256, 1)
@@ -119,7 +121,7 @@ def load_control():
     df.set_index("Subject", drop=True, inplace=True)
     age_dict = df.to_dict(orient="index")
 
-    y = [age_dict[id] for id in ids]
+    y = np.array([age_dict[id] for id in ids])
 
     tts_split = train_test_split(
         X, y, range(y.shape[0]), test_size=0.2, random_state=0, stratify= y#np.argmax(y, axis=1)
@@ -146,13 +148,37 @@ def cnn_model():
     x = Flatten(name='flatten')(x)
     x = Dense(800, activation='relu', name='fc_1')(x)
     x = BatchNormalization()(x)
-    x = Dropout(0.5)(x)
+    #x = Dropout(0.5)(x)
     x = Dense(800, activation='relu', name='fc_2')(x)
-    x = BatchNormalization()(x)
+    #x = BatchNormalization()(x)
     #x = Dropout(0.8)(x)
     pred = Dense(3, activation='sigmoid', name='pred')(x)
     model = Model(img_input, pred, name='mri_regressor')
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    return model
+
+
+def cnn_model3D():
+    img_input = Input(shape=(64, 64, 1), name='input')
+
+    # --- block 1 ---
+    x = Conv3D(64, (5, 5), activation='relu', padding='same', name='block1_conv1')(img_input)
+    #x = BatchNormalization()(x)
+    x = MaxPooling3D((2, 2), strides=(2, 2), name='block1_pool')(x)
+    x = Conv3D(64, (5, 5), activation='relu', padding='same', name='block2_conv1')(x)
+    #x = BatchNormalization()(x)
+    x = MaxPooling3D((2, 2), strides=(2, 2), name='block2_pool')(x)
+    x = Flatten(name='flatten')(x)
+    x = Dense(800, activation='relu', name='fc_1')(x)
+    #x = BatchNormalization()(x)
+    #x = Dropout(0.5)(x)
+    x = Dense(800, activation='relu', name='fc_2')(x)
+    #x = BatchNormalization()(x)
+    #x = Dropout(0.8)(x)
+    pred = Dense(3, activation='linear', name='pred')(x)
+    model = Model(img_input, pred, name='mri_regressor')
+    model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['mae'])
 
     return model
 
@@ -168,8 +194,14 @@ def main():
     elif args.data == 'control':
         x_train, x_test, y_train, y_test = load_control()
 
+    lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
+    es = callbacks.EarlyStopping(min_delta=0.001, patience=10)
+
     if args.cnn:
-        model = cnn_model()
+        if d == 2:
+            model = cnn_model()
+        else:
+            model = cnn_model3D()
     else:
         model, eval_model, manipulate_model = capsnet.CapsNet(input_shape=x_train.shape[1:],
                                                               n_class=len(np.unique(np.argmax(y_train, 1))),
@@ -180,17 +212,13 @@ def main():
                       loss_weights=[1., args.lam_recon],
                       metrics={'capsnet': 'accuracy'})
 
-    lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
-    es = callbacks.EarlyStopping(min_delta=0.001, patience=10)
-
     if args.cv:
         skf = StratifiedKFold(np.argmax(y, axis=1), n_folds=5, shuffle=True)
 
         for i, (tr, te) in enumerate(skf):
-            model = cnn_model()
             model.fit(X[tr], y[tr],
-                      batch_size=100,
-                      epochs=60,
+                      batch_size=args.batch_size,
+                      epochs=args.epochs,
                       verbose=1,
                       callbacks=[lr_decay, es],
                       validation_data=(X[te], y[te]),
@@ -198,8 +226,8 @@ def main():
     else:
         if args.cnn:
             model.fit(x_train, y_train,
-                      batch_size=50,
-                      epochs=60,
+                      batch_size=args.batch_size,
+                      epochs=args.epochs,
                       verbose=1,
                       callbacks=[lr_decay, es],
                       validation_data=(x_test, y_test),
@@ -207,7 +235,7 @@ def main():
             print model.evaluate(x_hold, y_hold)
         else:
             model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
-                      validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay])
+                      validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, es])
 
             print model.evaluate([x_hold, y_hold], [y_hold, x_hold])
 

@@ -3,14 +3,13 @@ Author: Xifeng Guo, E-mail: `guoxifeng1990@163.com`, Github: `https://github.com
 """
 
 import numpy as np
-from keras import layers, models, optimizers
+from keras import layers, models
 from keras import backend as K
 import matplotlib.pyplot as plt
 from utils import combine_images
 from PIL import Image
 from capsulelayers import CapsuleLayer, PrimaryCap, Length, Mask
 from keras.preprocessing.image import ImageDataGenerator
-from keras import callbacks
 K.set_image_data_format('channels_last')
 
 

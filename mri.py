@@ -13,6 +13,7 @@ from collections import Counter
 from sklearn.metrics import mean_absolute_error
 import tensorflow as tf
 import argparse
+from keras.preprocessing.image import ImageDataGenerator
 
 
 def cnn_model(n_classes=1):
@@ -22,67 +23,69 @@ def cnn_model(n_classes=1):
     James H Cole et. al.
     https://arxiv.org/pdf/1612.02572.pdf'''
     print "Loading cnn model"
-    with tf.device('/gpu:1'):
-        img_input = Input(shape=(64,64,35,1), name='input')
+    img_input = Input(shape=(64,64,35,1), name='input')
 
-        m=2
+    m = 4
 
-        # --- block 1 ---
-        x = Conv3D(8 * m, (3,3,3), activation='relu', padding='same', name='block1_conv1')(img_input)
-        x = BatchNormalization()(x)
-        x = Conv3D(8 * m, (3,3,3), activation='relu', padding='same', name='block1_conv2')(x)
-        x = BatchNormalization()(x)
-        x = MaxPooling3D((2,2,2), strides=(2,2,2), name='block1_pool')(x)
+    # --- block 1 ---
+    x = Conv3D(8 * m, (3,3,3), activation='relu', padding='same', name='block1_conv1')(img_input)
+    x = BatchNormalization()(x)
+    x = Conv3D(8 * m, (3,3,3), activation='relu', padding='same', name='block1_conv2')(x)
+    x = BatchNormalization()(x)
+    x = MaxPooling3D((2,2,2), strides=(2,2,2), name='block1_pool')(x)
 
-        # --- block 2 ---
-        x = Conv3D(16 * m, (3, 3, 3), activation='relu', padding='same', name='block2_conv1')(x)
-        x = BatchNormalization()(x)
-        x = Conv3D(16 * m, (3, 3, 3), activation='relu', padding='same', name='block2_conv2')(x)
-        x = BatchNormalization()(x)
-        x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block2_pool')(x)
+    # --- block 2 ---
+    x = Conv3D(16 * m, (3,3,3), activation='relu', padding='same', name='block2_conv1')(x)
+    x = BatchNormalization()(x)
+    x = Conv3D(16 * m, (3,3,3), activation='relu', padding='same', name='block2_conv2')(x)
+    x = BatchNormalization()(x)
+    x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block2_pool')(x)
 
-        # --- block 3 ---
-        x = Conv3D(32 * m, (3, 3, 3), activation='relu', padding='same', name='block3_conv1')(x)
-        x = BatchNormalization()(x)
-        x = Conv3D(32 * m, (3, 3, 3), activation='relu', padding='same', name='block3_conv2')(x)
-        x = BatchNormalization()(x)
-        x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block3_pool')(x)
+    # --- block 3 ---
+    x = Conv3D(32 * m, (3,3,3), activation='relu', padding='same', name='block3_conv1')(x)
+    x = BatchNormalization()(x)
+    x = Conv3D(32 * m, (3,3,3), activation='relu', padding='same', name='block3_conv2')(x)
+    x = BatchNormalization()(x)
+    x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block3_pool')(x)
 
-        # --- block 4 ---
-        x = Conv3D(64 * m, (3, 3, 3), activation='relu', padding='same', name='block4_conv1')(x)
-        x = BatchNormalization()(x)
-        x = Conv3D(64 * m, (3, 3, 3), activation='relu', padding='same', name='block4_conv2')(x)
-        x = BatchNormalization()(x)
-        x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block4_pool')(x)
+    # --- block 4 ---
+    '''x = Conv3D(64 * m, (3,3,3), activation='relu', padding='same', name='block4_conv1')(x)
+    x = BatchNormalization()(x)
+    x = Conv3D(64 * m, (3,3,3), activation='relu', padding='same', name='block4_conv2')(x)
+    x = BatchNormalization()(x)
+    x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block4_pool')(x)
 
-        # --- block 5 ---
-        x = Conv3D(128 * m, (3, 3, 3), activation='relu', padding='same', name='block5_conv1')(x)
-        x = BatchNormalization()(x)
-        x = Conv3D(128 * m, (3, 3, 3), activation='relu', padding='same', name='block5_conv2')(x)
-        x = BatchNormalization()(x)
-        x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block5_pool')(x)
+    # --- block 5 ---
+    x = Conv3D(128 * m, (3,3,3), activation='relu', padding='same', name='block5_conv1')(x)
+    x = BatchNormalization()(x)
+    x = Conv3D(128 * m, (3,3,3), activation='relu', padding='same', name='block5_conv2')(x)
+    x = BatchNormalization()(x)
+    x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block5_pool')(x)'''
 
-        if n_classes == 1:
-            ac = 'linear'
-            ls = 'mean_absolute_error'
-            m = [metrics.mae]
-        else:
-            ac = 'softmax'
-            ls = 'categorical_crossentropy'
-            #ls = 'binary_crossentropy'
-            m = ['accuracy']
+    if n_classes == 1:
+        ac = 'linear'
+        ls = 'mean_absolute_error'
+        m = [metrics.mae]
+    else:
+        ac = 'softmax'
+        ls = 'categorical_crossentropy'
+        #ls = 'binary_crossentropy'
+        m = ['accuracy']
 
-        # --- pred block ---
-        x = Dropout(0.25)(x)
-        x = Flatten(name='flatten')(x)
-        x = Dense(128, activation='relu', name='fc')(x)
-        x = Dropout(0.5)(x)
-        pred = Dense(n_classes, activation=ac, name='pred')(x)
+    # --- pred block ---
+    x = Flatten(name='flatten')(x)
+    x = Dense(1024, activation='relu', name='fc_1')(x)
+    x = BatchNormalization()(x)
+    x = Dropout(0.5)(x)
+    x = Dense(1024, activation='relu', name='fc_2')(x)
+    x = BatchNormalization()(x)
+    x = Dropout(0.5)(x)
+    pred = Dense(n_classes, activation=ac, name='pred')(x)
 
-        # Compile model
-        model = Model(img_input, pred, name='mri_regressor')
-        sgd = optimizers.SGD(lr=0.001, momentum=0.9, decay=0.03,)
-        model.compile(loss=ls, optimizer=sgd, metrics=m)
+    # Compile model
+    model = Model(img_input, pred, name='mri_regressor')
+    #sgd = optimizers.SGD(lr=0.001, momentum=0.9, decay=0.03,)
+    model.compile(loss=ls, optimizer='adam', metrics=m)
 
     return model
 
@@ -99,10 +102,10 @@ def load_imgs():
                 img_data = img.get_data()
 
                 # Take last image
-                #data[name[6:]] = img_data[:,:,:,-1]
+                data[name[6:]] = img_data[:,:,:,-1]
 
                 # Take aggregate image
-                data[name[6:]] = np.mean(img_data, axis=3)
+                #data[name[6:]] = np.mean(img_data, axis=3)
 
     print "Loaded %d images" % len(data)
     return data
@@ -123,6 +126,7 @@ def load_target(target):
         targets.append(sc)
 
     match_df['target'] = targets
+    match_df = match_df.dropna()
 
     print "Patients with %s %d" % (target, sum(match_df['target'].notnull()))
 
@@ -150,20 +154,25 @@ def match_image_ids(imgs, match_df):
     print "Final number of matched patients with mri:", match_df.shape[0]
     print Counter(match_df['target'])
 
-    y = np.array(pd.get_dummies(match_df['target']))
+    y = match_df['target']
 
-    return X, y
+    if len(y.unique()) < 4:
+        y = pd.get_dummies(match_df['target'])
+
+    return X, np.array(y)
 
 
-def get_split(X, y):
+def get_split(X, y, n_classes):
+
+    if n_classes == 1:
+        str = None
+    else:
+        str = np.argmax(y, axis=1)
+
     tts_split = train_test_split(
-        X, y, range(y.shape[0]), test_size=0.2, random_state=0, stratify=(y.shape[1] > 1) & y)
+        X, y, range(y.shape[0]), test_size=0.2, random_state=0, stratify=str)
 
     X_train, X_test, y_train, y_test, train_idx, test_idx = tts_split
-
-    print X_train.shape
-
-    print X_train[0].shape
 
     X_train = X_train.reshape((X_train.shape[0], 64, 64, 35, 1))
     X_test = X_test.reshape((X_test.shape[0], 64, 64, 35, 1))
@@ -176,34 +185,38 @@ def train_model(model, X_train, X_test, y_train, y_test):
     early_stopper = EarlyStopping(min_delta=0.001, patience=10)
     csv_logger = CSVLogger("results/mri_net.csv")
 
-    with tf.device('/gpu:1'):
-        model.fit(X_train, y_train,
-                  batch_size=20,
-                  epochs=300,
-                  verbose=1,
-                  callbacks=[lr_reducer, early_stopper, csv_logger],
-                  validation_data=(X_test, y_test),
-                  class_weight='auto')
+    # fits the model on batches with real-time data augmentation:
+    '''model.fit_generator(datagen.flow(X_train, y_train, batch_size=32),
+                        steps_per_epoch=len(X_train) / 32, epochs=300,
+                        callbacks=[lr_reducer, early_stopper, csv_logger],
+                        validation_data=(X_test, y_test))'''
 
-        print "Train data counts:", Counter(np.array(y_train)[:, 1])
-        print "Test data counts:", Counter(np.array(y_test)[:, 1])
+    model.fit(X_train, y_train,
+              batch_size=50,
+              epochs=300,
+              verbose=1,
+              callbacks=[lr_reducer, early_stopper, csv_logger],
+              validation_data=(X_test, y_test),
+              class_weight='auto')
 
-        model_path = 'model.h5'
-        model.save(model_path)
+    model_path = 'model.h5'
+    model.save(model_path)
 
-        train_pred = model.predict(X_train)
-        pred = model.predict(X_test)
-        print pd.DataFrame(zip(y_test, pred))
+    train_pred = model.predict(X_train)
+    pred = model.predict(X_test)
+    print pd.DataFrame(zip(y_test, pred))
 
-        if y_train.shape[1]==1:
-            print "Baseline train MAE:", mean_absolute_error(y_train, [np.mean(y_train)] * len(y_train))
-            print "Baseline test MAE:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
+    if len(y_train.shape)==1:
+        print "Baseline train MAE:", mean_absolute_error(y_train, [np.mean(y_train)] * len(y_train))
+        print "Baseline test MAE:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
 
-            print 'Train MAE: ', mean_absolute_error(y_train, train_pred)
-            print 'Test MAE: ', mean_absolute_error(y_test, pred)
-        else:
-            print model.evaluate(X_train, y_train)
-            print model.evaluate(X_test, y_test)
+        print 'Train MAE: ', mean_absolute_error(y_train, train_pred)
+        print 'Test MAE: ', mean_absolute_error(y_test, pred)
+    else:
+        print "Train data counts:", Counter(np.argmax(np.array(y_train), axis=1))
+        print "Test data counts:", Counter(np.argmax(np.array(y_test), axis=1))
+        print model.evaluate(X_train, y_train)[1]
+        print model.evaluate(X_test, y_test)[1]
 
 
 def get_parser():
@@ -223,9 +236,26 @@ def main():
 
     X, y = match_image_ids(imgs, match_df)
 
-    X_train, X_test, y_train, y_test = get_split(X, y)
+    if len(y.shape)==1:
+        n_classes = 1
+    else:
+        n_classes = y.shape[1]
 
-    model = cnn_model(y.shape[1])
+    X_train, X_test, y_train, y_test = get_split(X, y, n_classes)
+
+    '''datagen = ImageDataGenerator(
+        featurewise_center=True,
+        featurewise_std_normalization=True,
+        rotation_range=20,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        horizontal_flip=True)
+
+    # compute quantities required for featurewise normalization
+    # (std, mean, and principal components if ZCA whitening is applied)
+    datagen.fit(X_train)'''
+
+    model = cnn_model(n_classes)
 
     train_model(model, X_train, X_test, y_train, y_test)
 
