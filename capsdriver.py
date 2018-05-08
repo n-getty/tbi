@@ -17,7 +17,7 @@ from keras import callbacks, optimizers
 from skimage.transform import resize
 from collections import Counter
 import tensorflow as tf
-import GetBest
+from GetBest import GetBest
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
@@ -210,7 +210,7 @@ def main():
     print "Hold freq:", np.array(Counter(np.argmax(y_hold, axis=1)).values()).astype('float32') / len(y_hold)
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
-    es = callbacks.EarlyStopping(min_delta=0.001, patience=3)
+    es = callbacks.EarlyStopping(min_delta=0.001, patience=10)
     lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
     gb = GetBest(monitor='val_acc', verbose=1, mode='max')
 
