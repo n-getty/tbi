@@ -200,9 +200,9 @@ def main():
         x_train = x_train[:args.sub]
         y_train = y_train[:args.sub]
 
-    print "Train freq:", Counter(y_train).values()/len(y_train)
-    print "Test freq:", Counter(y_test).values() / len(y_test)
-    print "Hold freq:", Counter(y_hold).values() / len(y_hold)
+    print "Train freq:", np.array(Counter(y_train).values()) / len(y_train)
+    print "Test freq:", np.array(Counter(y_test).values()) / len(y_test)
+    print "Hold freq:", np.array(Counter(y_hold).values()) / len(y_hold)
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10)
