@@ -234,7 +234,7 @@ def main():
                   batch_size=args.batch_size,
                   epochs=args.epochs,
                   verbose=args.verb,
-                  callbacks=[lr_decay, gb, lr_red],
+                  callbacks=[lr_decay, gb],
                   validation_data=(x_test, y_test),
                   class_weight='auto')
         print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
