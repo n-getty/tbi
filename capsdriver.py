@@ -147,14 +147,14 @@ def cnn_model():
 
     # --- block 1 ---
     x = Conv2D(64, (5, 5), activation='relu', padding='same', name='block1_conv1')(img_input)
-    x = BatchNormalization()(x)
+    #x = BatchNormalization()(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
     x = Conv2D(64, (5, 5), activation='relu', padding='same', name='block2_conv1')(x)
-    x = BatchNormalization()(x)
+    #x = BatchNormalization()(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
     x = Dense(800, activation='relu', name='fc_1')(x)
-    x = BatchNormalization()(x)
+    #x = BatchNormalization()(x)
     #x = Dropout(0.5)(x)
     x = Dense(800, activation='relu', name='fc_2')(x)
     #x = BatchNormalization()(x)
