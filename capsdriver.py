@@ -23,6 +23,7 @@ def params():
     # setting the hyper parameters
     parser = argparse.ArgumentParser(description="Capsule Network on brain tumor classification.")
     parser.add_argument('--epochs', default=30, type=int)
+    parser.add_argument('--verb', default=1, type=int)
     parser.add_argument('--sub', default=0, type=int)
     parser.add_argument('--batch_size', default=100, type=int)
     parser.add_argument('--lr', default=0.001, type=float,
@@ -41,6 +42,8 @@ def params():
                         help="Use cross validation")
     parser.add_argument('--cnn', action='store_true',
                         help="Use cnn model")
+    parser.add_argument('--caps', action='store_true',
+                        help="Use caps model")
     parser.add_argument('--save_dir', default='./result')
     parser.add_argument('--data', default='tumor')
     parser.add_argument('-t', '--testing', action='store_true',
@@ -229,7 +232,7 @@ def main():
             model.fit(X[tr], y[tr],
                       batch_size=args.batch_size,
                       epochs=args.epochs,
-                      verbose=1,
+                      verbose=args.verb,
                       callbacks=[lr_decay, es],
                       validation_data=(X[te], y[te]),
                       class_weight='auto')
@@ -238,14 +241,14 @@ def main():
             model.fit(x_train, y_train,
                       batch_size=args.batch_size,
                       epochs=args.epochs,
-                      verbose=1,
+                      verbose=args.verb,
                       callbacks=[lr_decay, es],
                       validation_data=(x_test, y_test),
                       class_weight='auto')
             print model.evaluate(x_hold, y_hold)
-        else:
+        if args.caps:
             model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
-                      validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, es])
+                      validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, es], verbose=args.verb)
 
             print model.evaluate([x_hold, y_hold], [y_hold, x_hold])
 
