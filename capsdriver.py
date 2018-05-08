@@ -3,7 +3,6 @@ import numpy as np
 import scipy
 from sklearn.model_selection import train_test_split
 import h5py
-from sklearn.cross_validation import StratifiedKFold
 import capsnet
 import mri
 import nibabel as nib
@@ -55,7 +54,7 @@ def params():
     parser.add_argument('-w', '--weights', default=None,
                         help="The path of the saved weights. Should be specified when testing")
     args = parser.parse_args()
-    print(args)
+    #print(args)
 
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
@@ -211,6 +210,7 @@ def main():
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10)
+    lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
 
     if args.cnn:
         if d == 2:
@@ -227,32 +227,20 @@ def main():
                       loss_weights=[1., args.lam_recon],
                       metrics={'capsnet': 'accuracy'})
 
-    if args.cv:
-        skf = StratifiedKFold(np.argmax(y, axis=1), n_folds=5, shuffle=True)
+    if args.cnn:
+        c_model.fit(x_train, y_train,
+                  batch_size=args.batch_size,
+                  epochs=args.epochs,
+                  verbose=args.verb,
+                  callbacks=[lr_decay, es, lr_red],
+                  validation_data=(x_test, y_test),
+                  class_weight='auto')
+        print c_model.evaluate(x_hold, y_hold)
+    if args.caps:
+        model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
+                  validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, es, lr_red], verbose=args.verb)
 
-        for i, (tr, te) in enumerate(skf):
-            c_model.fit(X[tr], y[tr],
-                      batch_size=args.batch_size,
-                      epochs=args.epochs,
-                      verbose=args.verb,
-                      callbacks=[lr_decay, es],
-                      validation_data=(X[te], y[te]),
-                      class_weight='auto')
-    else:
-        if args.cnn:
-            c_model.fit(x_train, y_train,
-                      batch_size=args.batch_size,
-                      epochs=args.epochs,
-                      verbose=args.verb,
-                      callbacks=[lr_decay, es],
-                      validation_data=(x_test, y_test),
-                      class_weight='auto')
-            print c_model.evaluate(x_hold, y_hold)
-        if args.caps:
-            model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
-                      validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, es], verbose=args.verb)
-
-            print model.evaluate([x_hold, y_hold], [y_hold, x_hold])
+        print model.evaluate([x_hold, y_hold], [y_hold, x_hold])
 
 
 if __name__ == '__main__':
