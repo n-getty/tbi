@@ -197,7 +197,7 @@ def main():
 
     if args.sub > 0:
         x_train = x_train[:args.sub]
-        y_train = x_train[:args.sub]
+        y_train = y_train[:args.sub]
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10)
