@@ -212,9 +212,9 @@ def main():
 
     if args.cnn:
         if d == 2:
-            model = cnn_model()
+            c_model = cnn_model()
         else:
-            model = cnn_model3D()
+            c_model = cnn_model3D()
     else:
         model, eval_model, manipulate_model = capsnet.CapsNet(input_shape=x_train.shape[1:],
                                                               n_class=len(np.unique(np.argmax(y_train, 1))),
@@ -229,7 +229,7 @@ def main():
         skf = StratifiedKFold(np.argmax(y, axis=1), n_folds=5, shuffle=True)
 
         for i, (tr, te) in enumerate(skf):
-            model.fit(X[tr], y[tr],
+            c_model.fit(X[tr], y[tr],
                       batch_size=args.batch_size,
                       epochs=args.epochs,
                       verbose=args.verb,
@@ -238,14 +238,14 @@ def main():
                       class_weight='auto')
     else:
         if args.cnn:
-            model.fit(x_train, y_train,
+            c_model.fit(x_train, y_train,
                       batch_size=args.batch_size,
                       epochs=args.epochs,
                       verbose=args.verb,
                       callbacks=[lr_decay, es],
                       validation_data=(x_test, y_test),
                       class_weight='auto')
-            print model.evaluate(x_hold, y_hold)
+            print c_model.evaluate(x_hold, y_hold)
         if args.caps:
             model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
                       validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, es], verbose=args.verb)
