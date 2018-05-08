@@ -22,6 +22,7 @@ def params():
     # setting the hyper parameters
     parser = argparse.ArgumentParser(description="Capsule Network on brain tumor classification.")
     parser.add_argument('--epochs', default=30, type=int)
+    parser.add_argument('--sub', default=0, type=int)
     parser.add_argument('--batch_size', default=100, type=int)
     parser.add_argument('--lr', default=0.001, type=float,
                         help="Initial learning rate")
@@ -193,6 +194,10 @@ def main():
         x_train, x_test, y_train, y_test = load_tbi()
     elif args.data == 'control':
         x_train, x_test, y_train, y_test = load_control()
+
+    if args.sub > 0:
+        x_train = x_train[:args.sub]
+        y_train = x_train[:args.sub]
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10)
