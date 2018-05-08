@@ -210,9 +210,9 @@ def main():
     print "Hold freq:", np.array(Counter(np.argmax(y_hold, axis=1)).values()).astype('float32') / len(y_hold)
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
-    es = callbacks.EarlyStopping(min_delta=0.001, patience=10)
+    es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
     lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
-    gb = GetBest(monitor='val_acc', verbose=1, mode='max')
+    gb = GetBest(monitor='val_acc', verbose=0, mode='max')
 
     if args.cnn:
         if d == 2:
@@ -238,6 +238,12 @@ def main():
                   validation_data=(x_test, y_test),
                   class_weight='auto')
         print c_model.evaluate(x_hold, y_hold)
+
+    lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
+    es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
+    lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
+    gb = GetBest(monitor='val_capsnet_acc', verbose=0, mode='max')
+
     if args.caps:
         model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
                   validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, es, lr_red, gb], verbose=args.verb)
