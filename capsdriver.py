@@ -205,9 +205,9 @@ def main():
         x_train = x_train[:args.sub]
         y_train = y_train[:args.sub]
 
-    print "Train freq:", np.array(Counter(np.argmax(y_train, axis=1)).values()).astype('float32') / len(y_train)
-    print "Test freq:", np.array(Counter(np.argmax(y_test, axis=1)).values()).astype('float32') / len(y_test)
-    print "Hold freq:", np.array(Counter(np.argmax(y_hold, axis=1)).values()).astype('float32') / len(y_hold)
+    #print "Train freq:", np.array(Counter(np.argmax(y_train, axis=1)).values()).astype('float32') / len(y_train)
+    #print "Test freq:", np.array(Counter(np.argmax(y_test, axis=1)).values()).astype('float32') / len(y_test)
+    #print "Hold freq:", np.array(Counter(np.argmax(y_hold, axis=1)).values()).astype('float32') / len(y_hold)
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
@@ -237,7 +237,7 @@ def main():
                   callbacks=[lr_decay, es, lr_red, gb],
                   validation_data=(x_test, y_test),
                   class_weight='auto')
-        print c_model.evaluate(x_hold, y_hold)
+        print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
@@ -248,7 +248,7 @@ def main():
         model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
                   validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, es, lr_red, gb], verbose=args.verb)
 
-        print model.evaluate([x_hold, y_hold], [y_hold, x_hold])
+        print model.evaluate([x_test, y_test], [y_test, x_test], verbose=0)[3], model.evaluate([x_hold, y_hold], [y_hold, x_hold], verbose=0)[3]
 
 
 if __name__ == '__main__':
