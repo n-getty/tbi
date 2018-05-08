@@ -234,7 +234,7 @@ def main():
                   batch_size=args.batch_size,
                   epochs=args.epochs,
                   verbose=args.verb,
-                  callbacks=[lr_decay, gb],
+                  callbacks=[lr_decay, gb, lr_red],
                   validation_data=(x_test, y_test),
                   class_weight='auto')
         print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
@@ -246,7 +246,7 @@ def main():
 
     if args.caps:
         model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
-                  validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, gb], verbose=args.verb)
+                  validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, gb, lr_red], verbose=args.verb)
 
         print model.evaluate([x_test, y_test], [y_test, x_test], verbose=0)[3], model.evaluate([x_hold, y_hold], [y_hold, x_hold], verbose=0)[3]
 
