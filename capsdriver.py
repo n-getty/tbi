@@ -16,6 +16,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.models import Model
 from keras import callbacks, optimizers
 from skimage.transform import resize
+from collections import Counter
 
 
 def params():
@@ -198,6 +199,10 @@ def main():
     if args.sub > 0:
         x_train = x_train[:args.sub]
         y_train = y_train[:args.sub]
+
+    print "Train freq:", Counter(y_train).values()/len(y_train)
+    print "Test freq:", Counter(y_test).values() / len(y_test)
+    print "Hold freq:", Counter(y_hold).values() / len(y_hold)
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10)
