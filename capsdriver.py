@@ -17,6 +17,8 @@ from keras.models import Model
 from keras import callbacks, optimizers
 from skimage.transform import resize
 from collections import Counter
+import tensorflow as tf
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 def params():
@@ -215,7 +217,7 @@ def main():
             c_model = cnn_model()
         else:
             c_model = cnn_model3D()
-    else:
+    if args.caps:
         model, eval_model, manipulate_model = capsnet.CapsNet(input_shape=x_train.shape[1:],
                                                               n_class=len(np.unique(np.argmax(y_train, 1))),
                                                               routings=args.routings, d=d)
