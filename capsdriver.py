@@ -105,7 +105,7 @@ def load_tbi():
 
     X, y = mri.match_image_ids(imgs, match_df)
 
-    X = X.reshape(len(X), 64, 64, 64, 1)
+    X = X.reshape(len(X), 64, 64, 35, 1)
 
     #x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
 
@@ -123,10 +123,10 @@ def load_control():
             img = nib.load(fn)
             img_data = img.get_data()
             ids.append(int(filename[6:11]))
-            img_data = resize(img_data, (64, 64, 64))
+            img_data = resize(img_data, (64, 64, 35))
             X.append(img_data)
 
-    X = np.stack(X).reshape(len(X), 64, 64, 64, 1)
+    X = np.stack(X).reshape(len(X), 64, 64, 35, 1)
 
     infile = 'data/control.csv'
     df = pd.read_csv(infile, usecols=['Subject', 'Age', 'Description'])
@@ -141,8 +141,8 @@ def load_control():
 
     x_train, x_test, y_train, y_test, train_idx, test_idx = tts_split
 
-    x_train = x_train.reshape(x_train.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
-    x_test = x_test.reshape(x_test.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
+    x_train = x_train.reshape(x_train.shape[0], 64, 64, 35, 1) #.astype('float32') / 255
+    x_test = x_test.reshape(x_test.shape[0], 64, 64, 35, 1) #.astype('float32') / 255
 
     return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:]
 
