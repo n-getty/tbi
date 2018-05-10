@@ -107,6 +107,8 @@ def load_tbi():
 
     X = X.reshape(len(X), 64, 64, 64, 1)
 
+    y = (y - np.mean(y)) / (max(y) - min(y))
+
     #x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
 
     return X, y
@@ -134,6 +136,8 @@ def load_control():
     age_dict = dict(zip(df.Subject, df.Age))
 
     y = np.array([age_dict[id] for id in ids])
+
+    y = (y - np.mean(y)) / (max(y) - min(y))
 
     tts_split = train_test_split(
         X, y, range(y.shape[0]), test_size=0.2, random_state=0
@@ -255,9 +259,11 @@ def main():
                   class_weight='auto')
 
         if d ==3:
-            print "Test MAE:", mean_absolute_error(y_test, c_model.predict(x_test))
-            print "Hold MAE:", mean_absolute_error(y_hold, c_model.predict(x_hold))
-            print "TBI MAE:", mean_absolute_error(tbi_y, c_model.predict(tbi_X))
+            print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)]*len(y_hold))
+            print "Base TBI:", mean_absolute_error(tbi_y, [np.mean(tbi_y)] * len(tbi_y))
+            print "Test MAE:", mean_absolute_error(y_test, c_model.predict(x_test, batch_size=10))
+            print "Hold MAE:", mean_absolute_error(y_hold, c_model.predict(x_hold, batch_size=10))
+            print "TBI MAE:", mean_absolute_error(tbi_y, c_model.predict(tbi_X, batch_size=10))
             print pd.DataFrame(zip(c_model.predict(tbi_X), tbi_y), columns=['y_pred', 'y_true'])
             print pd.DataFrame(zip(c_model.predict(x_test), y_test), columns=['y_pred', 'y_true'])
         else:
