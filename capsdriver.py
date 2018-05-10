@@ -19,6 +19,7 @@ from collections import Counter
 import tensorflow as tf
 from GetBest import GetBest
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+from sklearn.metrics import mean_absolute_error
 
 
 def params():
@@ -200,7 +201,7 @@ def main():
     elif args.data == 'tbi':
         x_train, x_test, y_train, y_test = load_tbi()
     elif args.data == 'control':
-        x_train, x_test, y_train, y_test = load_control()
+        x_train, x_test, y_train, y_test, x_hold, y_hold = load_control()
         m = 'val_mean_absolute_error'
 
     if args.sub > 0:
@@ -246,8 +247,13 @@ def main():
                   validation_data=(x_test, y_test),
                   class_weight='auto')
 
-        print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
-        print pd.DataFrame(dict(zip(c_model.predict(x_test), y_test)))
+        if d ==3:
+            print "Test MAE:", mean_absolute_error(y_test, c_model.predict(x_test))
+            print "Hold MAe:", mean_absolute_error(y_hold, c_model.predict(x_hold))
+            print pd.DataFrame(dict(zip(c_model.predict(x_test), y_test)))
+        else:
+            print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
+
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
