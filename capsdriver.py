@@ -127,7 +127,6 @@ def load_control():
     df = pd.read_csv(infile, usecols=['Subject', 'Age', 'Description'])
     df = df.loc[df.Description == 'MP-RAGE']
     df = df.drop('Description', axis=1)
-    df.set_index("Subject", drop=True, inplace=True)
     age_dict = dict(zip(df.Subject, df.Age))
 
     y = np.array([age_dict[id] for id in ids])
