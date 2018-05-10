@@ -139,7 +139,7 @@ def load_control():
     x_train = x_train.reshape(x_train.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
     x_test = x_test.reshape(x_test.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
 
-    return x_train, x_test, y_train, y_test
+    return x_train, x_test[:68], y_train, y_test[:68], X, y, x_test[68:], y_test[68:]
 
 
 def cnn_model():
@@ -170,23 +170,23 @@ def cnn_model3D():
     img_input = Input(shape=(64, 64, 64, 1), name='input')
 
     # --- block 1 ---
-    x = Conv3D(64, (5, 5, 5), activation='relu', padding='same', name='block1_conv1')(img_input)
+    x = Conv3D(64, (5,5,5), activation='relu', padding='same', name='block1_conv1')(img_input)
     #x = BatchNormalization()(x)
     x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block1_pool')(x)
-    x = Conv3D(64, (5, 5, 5), activation='relu', padding='same', name='block2_conv1')(x)
+    x = Conv3D(64, (5,5,5), activation='relu', padding='same', name='block2_conv1')(x)
     #x = BatchNormalization()(x)
     x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
-    x = Dense(400, activation='relu', name='fc_1')(x)
+    x = Dense(800, activation='relu', name='fc_1')(x)
     #x = BatchNormalization()(x)
     #x = Dropout(0.5)(x)
-    x = Dense(200, activation='relu', name='fc_2')(x)
+    x = Dense(800, activation='relu', name='fc_2')(x)
     #x = BatchNormalization()(x)
     #x = Dropout(0.8)(x)
     pred = Dense(1, activation='linear', name='pred')(x)
     model = Model(img_input, pred, name='mri_regressor')
     model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['mae'])
-
+    model.summary()
     return model
 
 
@@ -196,10 +196,12 @@ def main():
     if args.data == 'tumor':
         x_train, x_test, y_train, y_test, X, y, x_hold, y_hold = load_tumor()
         d = 2
+        m = 'val_acc'
     elif args.data == 'tbi':
         x_train, x_test, y_train, y_test = load_tbi()
     elif args.data == 'control':
         x_train, x_test, y_train, y_test = load_control()
+        m = 'val_mean_absolute_error'
 
     if args.sub > 0:
         x_train = x_train[:args.sub]
@@ -212,7 +214,8 @@ def main():
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
     lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
-    gb = GetBest(monitor='val_acc', verbose=0, mode='max')
+
+    gb = GetBest(monitor=m, verbose=0, mode='max')
 
     if args.cnn:
         if d == 2:
@@ -242,7 +245,9 @@ def main():
                   callbacks=[lr_decay, gb],
                   validation_data=(x_test, y_test),
                   class_weight='auto')
+
         print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
+        print pd.DataFrame(dict(zip(c_model.predict(x_test), y_test)))
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
