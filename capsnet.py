@@ -26,7 +26,7 @@ def CapsNet(input_shape, n_class, routings, d):
 
     # Layer 1: Just a conventional Conv2D layer
     if d == 2:
-        conv1 = layers.Conv2D(filters=256, kernel_size=9, strides=1, padding='valid', activation='relu', name='conv1')(x)
+        conv1 = layers.Conv2D(filters=64, kernel_size=9, strides=1, padding='valid', activation='relu', name='conv1')(x)
     else:
         conv1 = layers.Conv3D(filters=64, kernel_size=9, strides=1, padding='valid', activation='relu', name='conv1')(x)
 
