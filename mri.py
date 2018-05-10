@@ -14,6 +14,7 @@ from sklearn.metrics import mean_absolute_error
 import tensorflow as tf
 import argparse
 from keras.preprocessing.image import ImageDataGenerator
+from skimage.transform import resize
 
 
 def cnn_model(n_classes=1):
@@ -100,9 +101,10 @@ def load_imgs():
             if os.path.isfile(fn):
                 img = nib.load(fn)
                 img_data = img.get_data()
-
                 # Take last image
-                data[name[6:]] = img_data[:,:,:,-1]
+                img_data = img_data[:,:,:,-1]
+                img_data = resize(img_data, (64, 64, 64))
+                data[name[6:]] = img_data
 
                 # Take aggregate image
                 #data[name[6:]] = np.mean(img_data, axis=3)

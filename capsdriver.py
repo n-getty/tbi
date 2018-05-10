@@ -99,13 +99,15 @@ def load_tbi():
      # load data
     imgs = mri.load_imgs()
 
-    match_df = mri.load_target('CT_Intracraniallesion_FIN')
+    #match_df = mri.load_target('CT_Intracraniallesion_FIN')
+
+    match_df = mri.load_target('Age')
 
     X, y = mri.match_image_ids(imgs, match_df)
 
     x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
 
-    return x_train, x_test, y_train, y_test
+    return x_train, x_test, y_train, y_test, X, y
 
 
 def load_control():
@@ -198,11 +200,14 @@ def main():
         x_train, x_test, y_train, y_test, X, y, x_hold, y_hold = load_tumor()
         d = 2
         m = 'val_acc'
-    elif args.data == 'tbi':
-        x_train, x_test, y_train, y_test = load_tbi()
-    elif args.data == 'control':
+        mo = 'Max'
+    if args.data == 'tbi':
+        x_train, x_test, y_train, y_test, X, y = load_tbi()
+    if args.data == 'control':
         x_train, x_test, y_train, y_test, x_hold, y_hold = load_control()
+        _, _, _, _, tbi_X, tbi_y = load_tbi()
         m = 'val_mean_absolute_error'
+        mo = 'Min'
 
     if args.sub > 0:
         x_train = x_train[:args.sub]
@@ -216,7 +221,7 @@ def main():
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
     lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
 
-    gb = GetBest(monitor=m, verbose=0, mode='max')
+    gb = GetBest(monitor=m, verbose=0, mode=mo)
 
     if args.cnn:
         if d == 2:
@@ -249,8 +254,9 @@ def main():
 
         if d ==3:
             print "Test MAE:", mean_absolute_error(y_test, c_model.predict(x_test))
-            print "Hold MAe:", mean_absolute_error(y_hold, c_model.predict(x_hold))
-            print pd.DataFrame(dict(zip(c_model.predict(x_test), y_test)))
+            print "Hold MAE:", mean_absolute_error(y_hold, c_model.predict(x_hold))
+            print "TBI MAE:", mean_absolute_error(y_hold, c_model.predict(x_hold))
+            print pd.DataFrame(zip(c_model.predict(x_test), y_test), columns=['y_pred', 'y_true'])
         else:
             print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
 
