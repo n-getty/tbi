@@ -124,7 +124,9 @@ def load_control():
     X = np.stack(X).reshape(len(X), 64, 64, 64, 1)
 
     infile = 'data/control.csv'
-    df = pd.read_csv(infile, usecols=['Subject', 'Age'])
+    df = pd.read_csv(infile, usecols=['Subject', 'Age', 'Description'])
+    df = df.loc[df.Description == 'MP-RAGE']
+    df = df.drop('Description', axis=1)
     df.set_index("Subject", drop=True, inplace=True)
     age_dict = df.to_dict(orient="index")
 
