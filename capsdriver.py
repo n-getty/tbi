@@ -105,9 +105,9 @@ def load_tbi():
 
     X, y = mri.match_image_ids(imgs, match_df)
 
-    x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
+    #x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
 
-    return x_train, x_test, y_train, y_test, X, y
+    return X, y
 
 
 def load_control():
@@ -256,6 +256,7 @@ def main():
             print "Test MAE:", mean_absolute_error(y_test, c_model.predict(x_test))
             print "Hold MAE:", mean_absolute_error(y_hold, c_model.predict(x_hold))
             print "TBI MAE:", mean_absolute_error(tbi_y, c_model.predict(tbi_X))
+            print pd.DataFrame(zip(c_model.predict(tbi_X), tbi_y), columns=['y_pred', 'y_true'])
             print pd.DataFrame(zip(c_model.predict(x_test), y_test), columns=['y_pred', 'y_true'])
         else:
             print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
