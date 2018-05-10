@@ -167,7 +167,7 @@ def cnn_model():
 
 
 def cnn_model3D():
-    img_input = Input(shape=(64, 64, 1), name='input')
+    img_input = Input(shape=(64, 64, 64, 1), name='input')
 
     # --- block 1 ---
     x = Conv3D(64, (5, 5, 5), activation='relu', padding='same', name='block1_conv1')(img_input)
