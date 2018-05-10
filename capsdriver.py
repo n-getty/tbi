@@ -121,7 +121,7 @@ def load_control():
             img_data = resize(img_data, (64, 64, 64))
             X.append(img_data)
 
-    X = np.stack(X).reshape(len(X), 170, 256, 256, 1)
+    X = np.stack(X).reshape(len(X), 64, 64, 64, 1)
 
     infile = 'data/control.csv'
     df = pd.read_csv(infile, usecols=['Subject', 'Age'])
@@ -136,8 +136,8 @@ def load_control():
 
     x_train, x_test, y_train, y_test, train_idx, test_idx = tts_split
 
-    x_train = x_train.reshape(x_train.shape[0], 170, 256, 256, 1) #.astype('float32') / 255
-    x_test = x_test.reshape(x_test.shape[0], 170, 256, 256, 1) #.astype('float32') / 255
+    x_train = x_train.reshape(x_train.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
+    x_test = x_test.reshape(x_test.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
 
     return x_train, x_test, y_train, y_test
 
@@ -263,7 +263,6 @@ def main():
 
         y_pred, _ = eval_model.predict(x_hold, batch_size=100)
         print('Hold acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
-
 
 
 if __name__ == '__main__':
