@@ -105,7 +105,7 @@ def load_tbi():
 
     X, y = mri.match_image_ids(imgs, match_df)
 
-    X = X.reshape(len(X), 64, 64, 35, 1)
+    X = X.reshape(len(X), 64, 64, 64, 1)
 
     #x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
 
@@ -123,10 +123,10 @@ def load_control():
             img = nib.load(fn)
             img_data = img.get_data()
             ids.append(int(filename[6:11]))
-            img_data = resize(img_data, (64, 64, 35))
+            img_data = resize(img_data, (64, 64, 64))
             X.append(img_data)
 
-    X = np.stack(X).reshape(len(X), 64, 64, 35, 1)
+    X = np.stack(X).reshape(len(X), 64, 64, 64, 1)
 
     infile = 'data/control.csv'
     df = pd.read_csv(infile, usecols=['Subject', 'Age', 'Description'])
@@ -141,8 +141,8 @@ def load_control():
 
     x_train, x_test, y_train, y_test, train_idx, test_idx = tts_split
 
-    x_train = x_train.reshape(x_train.shape[0], 64, 64, 35, 1) #.astype('float32') / 255
-    x_test = x_test.reshape(x_test.shape[0], 64, 64, 35, 1) #.astype('float32') / 255
+    x_train = x_train.reshape(x_train.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
+    x_test = x_test.reshape(x_test.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
 
     return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:]
 
@@ -172,21 +172,21 @@ def cnn_model():
 
 
 def cnn_model3D():
-    img_input = Input(shape=(64, 64, 35, 1), name='input')
+    img_input = Input(shape=(64, 64, 64, 1), name='input')
 
     # --- block 1 ---
     x = Conv3D(64, (5,5,5), activation='relu', padding='same', name='block1_conv1')(img_input)
-    #x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block1_pool')(x)
     x = Conv3D(64, (5,5,5), activation='relu', padding='same', name='block2_conv1')(x)
-    #x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
     x = Dense(800, activation='relu', name='fc_1')(x)
-    #x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     #x = Dropout(0.5)(x)
     x = Dense(800, activation='relu', name='fc_2')(x)
-    #x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     #x = Dropout(0.8)(x)
     pred = Dense(1, activation='linear', name='pred')(x)
     model = Model(img_input, pred, name='mri_regressor')
