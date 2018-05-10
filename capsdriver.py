@@ -105,6 +105,8 @@ def load_tbi():
 
     X, y = mri.match_image_ids(imgs, match_df)
 
+    X = X.reshape(len(X), 64, 64, 64, 1)
+
     #x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
 
     return X, y
