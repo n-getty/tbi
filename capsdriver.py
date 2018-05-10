@@ -145,7 +145,7 @@ def load_control():
     y = (y - mean) / rnge
 
     tts_split = train_test_split(
-        X, y, range(y.shape[0]), test_size=0.2, random_state=0, shuffle=1
+        X, y, range(y.shape[0]), test_size=0.2, random_state=0
     )
 
     x_train, x_test, y_train, y_test, train_idx, test_idx = tts_split
@@ -280,7 +280,7 @@ def main():
             tbi_y = unnorm(tbi_y, tbi_mean, tbi_rnge)
             y_test = unnorm(y_test, mean, rnge)
             y_hold = unnorm(y_hold, mean, rnge)
-            
+
             print "Base Hold:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
             print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)]*len(y_hold))
             print "Base TBI:", mean_absolute_error(tbi_y, [np.mean(tbi_y)] * len(tbi_y))
