@@ -109,7 +109,7 @@ def load_tbi():
 
     mean = np.mean(y)
     rnge = max(y) - min(y)
-    y = (y - mean) / rnge
+    #y = (y - mean) / rnge
 
     #x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
 
@@ -142,7 +142,7 @@ def load_control():
 
     mean = np.mean(y)
     rnge = max(y) - min(y)
-    y = (y - mean) / rnge
+    #y = (y - mean) / rnge
 
     tts_split = train_test_split(
         X, y, range(y.shape[0]), test_size=0.2, random_state=0
@@ -275,16 +275,16 @@ def main():
             test_pred = c_model.predict(x_test, batch_size=10)
             hold_pred = c_model.predict(x_hold, batch_size=10)
 
-            tbi_pred = unnorm(tbi_pred, tbi_mean, tbi_rnge)
-            test_pred = unnorm(test_pred, mean, rnge)
-            hold_pred = unnorm(hold_pred, mean, rnge)
+            #tbi_pred = unnorm(tbi_pred, tbi_mean, tbi_rnge)
+            #test_pred = unnorm(test_pred, mean, rnge)
+            #hold_pred = unnorm(hold_pred, mean, rnge)
 
-            tbi_y = unnorm(tbi_y, tbi_mean, tbi_rnge)
-            y_test = unnorm(y_test, mean, rnge)
-            y_hold = unnorm(y_hold, mean, rnge)
+            #tbi_y = unnorm(tbi_y, tbi_mean, tbi_rnge)
+            #y_test = unnorm(y_test, mean, rnge)
+            #y_hold = unnorm(y_hold, mean, rnge)
 
-            print "Base Hold:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
-            print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)]*len(y_hold))
+            print "Base Test:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
+            print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)] *len(y_hold))
             print "Base TBI:", mean_absolute_error(tbi_y, [np.mean(tbi_y)] * len(tbi_y))
 
             print "Test MAE:", mean_absolute_error(y_test, test_pred)
