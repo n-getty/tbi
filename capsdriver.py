@@ -117,7 +117,7 @@ def load_control():
             fn = os.path.join(root, filename)
             img = nib.load(fn)
             img_data = img.get_data()
-            ids.append(filename[6:11])
+            ids.append(int(filename[6:11]))
             img_data = resize(img_data, (64, 64, 64))
             X.append(img_data)
 
