@@ -96,7 +96,7 @@ def load_tumor():
 
 
 def load_tbi():
-     # load data
+    # load data
     imgs = mri.load_imgs()
 
     #match_df = mri.load_target('CT_Intracraniallesion_FIN')
@@ -107,11 +107,13 @@ def load_tbi():
 
     X = X.reshape(len(X), 64, 64, 64, 1)
 
-    y = (y - np.mean(y)) / (max(y) - min(y))
+    mean = np.mean(y)
+    rnge = max(y) - min(y)
+    y = (y - mean) / rnge
 
     #x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
 
-    return X, y
+    return X, y, mean, rnge
 
 
 def load_control():
@@ -137,10 +139,13 @@ def load_control():
 
     y = np.array([age_dict[id] for id in ids])
 
-    y = (y - np.mean(y)) / (max(y) - min(y))
+
+    mean = np.mean(y)
+    rnge = max(y) - min(y)
+    y = (y - mean) / rnge
 
     tts_split = train_test_split(
-        X, y, range(y.shape[0]), test_size=0.2, random_state=0
+        X, y, range(y.shape[0]), test_size=0.2, random_state=0, shuffle=1
     )
 
     x_train, x_test, y_train, y_test, train_idx, test_idx = tts_split
@@ -148,7 +153,7 @@ def load_control():
     x_train = x_train.reshape(x_train.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
     x_test = x_test.reshape(x_test.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
 
-    return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:]
+    return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge
 
 
 def cnn_model():
@@ -199,6 +204,11 @@ def cnn_model3D():
     return model
 
 
+def unnorm(y, mean, rnge):
+    #y = (y - np.mean(y)) / (max(y) - min(y))
+    y = y * rnge + mean
+
+
 def main():
     args = params()
     d = 3
@@ -210,8 +220,8 @@ def main():
     if args.data == 'tbi':
         x_train, x_test, y_train, y_test, X, y = load_tbi()
     if args.data == 'control':
-        x_train, x_test, y_train, y_test, x_hold, y_hold = load_control()
-        tbi_X, tbi_y = load_tbi()
+        x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge = load_control()
+        tbi_X, tbi_y, tbi_mean, tbi_rnge = load_tbi()
         m = 'val_mean_absolute_error'
         mo = 'Min'
 
@@ -259,13 +269,27 @@ def main():
                   class_weight='auto')
 
         if d ==3:
+            tbi_pred = c_model.predict(tbi_X, batch_size=10)
+            test_pred = c_model.predict(x_test, batch_size=10)
+            hold_pred = c_model.predict(x_hold, batch_size=10)
+
+            tbi_pred = unnorm(tbi_pred, tbi_mean, tbi_rnge)
+            test_pred = unnorm(test_pred, mean, rnge)
+            hold_pred = unnorm(hold_pred, mean, rnge)
+
+            tbi_y = unnorm(tbi_y, tbi_mean, tbi_rnge)
+            y_test = unnorm(y_test, mean, rnge)
+            y_hold = unnorm(y_hold, mean, rnge)
+            
+            print "Base Hold:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
             print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)]*len(y_hold))
             print "Base TBI:", mean_absolute_error(tbi_y, [np.mean(tbi_y)] * len(tbi_y))
-            print "Test MAE:", mean_absolute_error(y_test, c_model.predict(x_test, batch_size=10))
-            print "Hold MAE:", mean_absolute_error(y_hold, c_model.predict(x_hold, batch_size=10))
-            print "TBI MAE:", mean_absolute_error(tbi_y, c_model.predict(tbi_X, batch_size=10))
-            print pd.DataFrame(zip(c_model.predict(tbi_X), tbi_y), columns=['y_pred', 'y_true'])
-            print pd.DataFrame(zip(c_model.predict(x_test), y_test), columns=['y_pred', 'y_true'])
+
+            print "Test MAE:", mean_absolute_error(y_test, test_pred)
+            print "Hold MAE:", mean_absolute_error(y_hold, hold_pred)
+            print "TBI MAE:", mean_absolute_error(tbi_y, tbi_pred)
+            print pd.DataFrame(zip(tbi_pred, tbi_y), columns=['y_pred', 'y_true'])
+            print pd.DataFrame(zip(test_pred, y_test), columns=['y_pred', 'y_true'])
         else:
             print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
 
