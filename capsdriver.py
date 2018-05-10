@@ -170,12 +170,12 @@ def cnn_model3D():
     img_input = Input(shape=(64, 64, 1), name='input')
 
     # --- block 1 ---
-    x = Conv3D(64, (5, 5), activation='relu', padding='same', name='block1_conv1')(img_input)
+    x = Conv3D(64, (5, 5, 5), activation='relu', padding='same', name='block1_conv1')(img_input)
     #x = BatchNormalization()(x)
-    x = MaxPooling3D((2, 2), strides=(2, 2), name='block1_pool')(x)
-    x = Conv3D(64, (5, 5), activation='relu', padding='same', name='block2_conv1')(x)
+    x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block1_pool')(x)
+    x = Conv3D(64, (5, 5, 5), activation='relu', padding='same', name='block2_conv1')(x)
     #x = BatchNormalization()(x)
-    x = MaxPooling3D((2, 2), strides=(2, 2), name='block2_pool')(x)
+    x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
     x = Dense(800, activation='relu', name='fc_1')(x)
     #x = BatchNormalization()(x)
@@ -183,7 +183,7 @@ def cnn_model3D():
     x = Dense(800, activation='relu', name='fc_2')(x)
     #x = BatchNormalization()(x)
     #x = Dropout(0.8)(x)
-    pred = Dense(3, activation='linear', name='pred')(x)
+    pred = Dense(1, activation='linear', name='pred')(x)
     model = Model(img_input, pred, name='mri_regressor')
     model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['mae'])
 
