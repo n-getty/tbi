@@ -229,6 +229,11 @@ def main():
                       loss_weights=[1., args.lam_recon],
                       metrics={'capsnet': 'accuracy'})
 
+        eval_model.compile(optimizer=optimizers.Adam(lr=args.lr),
+                      loss=[capsnet.margin_loss, 'mse'],
+                      loss_weights=[1., args.lam_recon],
+                      metrics={'capsnet': 'accuracy'})
+
     if args.cnn:
         c_model.fit(x_train, y_train,
                   batch_size=args.batch_size,
@@ -250,13 +255,14 @@ def main():
 
         w = model.get_weights()
         print model.evaluate([x_test, y_test], [y_test, x_test], verbose=0)[3], model.evaluate([x_hold, y_hold], [y_hold, x_hold], verbose=0)[3]
-        
+
         eval_model.set_weights(w)
         y_pred, _ = eval_model.predict(x_test, batch_size=100)
+        print y_pred
         print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1)) / y_test.shape[0])
 
         y_pred, _ = eval_model.predict(x_hold, batch_size=100)
-        print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1)) / y_test.shape[0])
+        print('Hold acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1)) / y_test.shape[0])
 
 
 
