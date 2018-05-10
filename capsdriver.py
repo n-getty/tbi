@@ -258,12 +258,11 @@ def main():
 
         eval_model.set_weights(w)
         y_pred, _ = eval_model.predict(x_test, batch_size=100)
-        print y_pred
-        print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1)) / y_test.shape[0])
+        print np.argmax(y_pred, 1), np.argmax(y_test, 1)
+        print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1)) / float(y_test.shape[0]))
 
         y_pred, _ = eval_model.predict(x_hold, batch_size=100)
-        print('Hold acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1)) / y_test.shape[0])
-
+        print('Hold acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
 
 
 
