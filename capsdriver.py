@@ -131,7 +131,7 @@ def load_control():
     y = np.array([age_dict[id] for id in ids])
 
     tts_split = train_test_split(
-        X, y, range(y.shape[0]), test_size=0.2, random_state=0, stratify= y#np.argmax(y, axis=1)
+        X, y, range(y.shape[0]), test_size=0.2, random_state=0
     )
 
     x_train, x_test, y_train, y_test, train_idx, test_idx = tts_split
