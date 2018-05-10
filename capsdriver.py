@@ -205,7 +205,7 @@ def main():
         x_train, x_test, y_train, y_test, X, y = load_tbi()
     if args.data == 'control':
         x_train, x_test, y_train, y_test, x_hold, y_hold = load_control()
-        _, _, _, _, tbi_X, tbi_y = load_tbi()
+        tbi_X, tbi_y = load_tbi()
         m = 'val_mean_absolute_error'
         mo = 'Min'
 
