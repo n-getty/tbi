@@ -255,7 +255,7 @@ def main():
         if d ==3:
             print "Test MAE:", mean_absolute_error(y_test, c_model.predict(x_test))
             print "Hold MAE:", mean_absolute_error(y_hold, c_model.predict(x_hold))
-            print "TBI MAE:", mean_absolute_error(y_hold, c_model.predict(x_hold))
+            print "TBI MAE:", mean_absolute_error(tbi_y, c_model.predict(tbi_X))
             print pd.DataFrame(zip(c_model.predict(x_test), y_test), columns=['y_pred', 'y_true'])
         else:
             print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
