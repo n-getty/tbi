@@ -208,6 +208,8 @@ def unnorm(y, mean, rnge):
     #y = (y - np.mean(y)) / (max(y) - min(y))
     y = y * rnge + mean
 
+    return y
+
 
 def main():
     args = params()
