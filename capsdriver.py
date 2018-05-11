@@ -109,7 +109,7 @@ def load_tbi():
 
     mean = np.mean(y)
     rnge = max(y) - min(y)
-    #y = (y - mean) / rnge
+    y = (y - mean) / rnge
 
     #x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
 
@@ -142,7 +142,7 @@ def load_control():
 
     mean = np.mean(y)
     rnge = max(y) - min(y)
-    #y = (y - mean) / rnge
+    y = (y - mean) / rnge
 
     tts_split = train_test_split(
         X, y, range(y.shape[0]), test_size=0.2, random_state=0
@@ -185,17 +185,17 @@ def cnn_model3D():
 
     # --- block 1 ---
     x = Conv3D(64, (5,5,5), activation='relu', padding='same', name='block1_conv1')(img_input)
-    x = BatchNormalization()(x)
+    #x = BatchNormalization()(x)
     x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block1_pool')(x)
     x = Conv3D(64, (5,5,5), activation='relu', padding='same', name='block2_conv1')(x)
-    x = BatchNormalization()(x)
+    #x = BatchNormalization()(x)
     x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
     x = Dense(800, activation='relu', name='fc_1')(x)
-    x = BatchNormalization()(x)
+    #x = BatchNormalization()(x)
     #x = Dropout(0.5)(x)
     x = Dense(800, activation='relu', name='fc_2')(x)
-    x = BatchNormalization()(x)
+    #x = BatchNormalization()(x)
     #x = Dropout(0.8)(x)
     pred = Dense(1, activation='linear', name='pred')(x)
     model = Model(img_input, pred, name='mri_regressor')
@@ -275,13 +275,13 @@ def main():
             test_pred = c_model.predict(x_test, batch_size=10)
             hold_pred = c_model.predict(x_hold, batch_size=10)
 
-            #tbi_pred = unnorm(tbi_pred, tbi_mean, tbi_rnge)
-            #test_pred = unnorm(test_pred, mean, rnge)
-            #hold_pred = unnorm(hold_pred, mean, rnge)
+            tbi_pred = unnorm(tbi_pred, tbi_mean, tbi_rnge)
+            test_pred = unnorm(test_pred, mean, rnge)
+            hold_pred = unnorm(hold_pred, mean, rnge)
 
-            #tbi_y = unnorm(tbi_y, tbi_mean, tbi_rnge)
-            #y_test = unnorm(y_test, mean, rnge)
-            #y_hold = unnorm(y_hold, mean, rnge)
+            tbi_y = unnorm(tbi_y, tbi_mean, tbi_rnge)
+            y_test = unnorm(y_test, mean, rnge)
+            y_hold = unnorm(y_hold, mean, rnge)
 
             print "Base Test:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
             print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)] *len(y_hold))
