@@ -111,6 +111,9 @@ def load_tumor():
         x = np.stack(x).reshape(len(x), 64, 64, 1).astype('float64') / 255
         x_test.extend(x)
 
+    x_train = np.array(x_train)
+    x_test = np.array(x_test)
+    
     x_train = x_train.reshape(x_train.shape[0], 64, 64, 1)
     x_test = x_test.reshape(x_test.shape[0], 64, 64, 1)
 
