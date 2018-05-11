@@ -19,7 +19,7 @@ from collections import Counter
 import tensorflow as tf
 from GetBest import GetBest
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, r2_score
 from collections import defaultdict
 
 
@@ -117,7 +117,7 @@ def load_tumor():
 
     y_train = np.array(y_train)
     y_test = np.array(y_test)
-    
+
     return x_train, x_test[:-300], y_train, y_test[:-300], x_test[-300:], y_test[-300:]
 
 
@@ -168,7 +168,7 @@ def load_control():
 
     mean = np.mean(y)
     rnge = max(y) - min(y)
-    y = (y - mean) / rnge
+    #y = (y - mean) / rnge
 
     tts_split = train_test_split(
         X, y, range(y.shape[0]), test_size=0.2, random_state=0
@@ -211,10 +211,10 @@ def cnn_model3D():
 
     # --- block 1 ---
     x = Conv3D(64, (5,5,5), activation='relu', padding='same', name='block1_conv1')(img_input)
-    #x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block1_pool')(x)
     x = Conv3D(64, (5,5,5), activation='relu', padding='same', name='block2_conv1')(x)
-    #x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
     x = Dense(800, activation='relu', name='fc_1')(x)
@@ -251,10 +251,10 @@ def main():
         x_train, x_test, y_train, y_test, X, y = load_tbi()
     if args.data == 'control':
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge = load_control()
-        tbi_X, tbi_y, tbi_mean, tbi_rnge = load_tbi()
+        x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
         m = 'val_mean_absolute_error'
         mo = 'Min'
-        tbi_y = (tbi_y - mean) / rnge
+        y_tbi = (y_tbi - mean) / rnge
 
     if args.sub > 0:
         x_train = x_train[:args.sub]
@@ -300,26 +300,31 @@ def main():
                   class_weight='auto')
 
         if d ==3:
-            tbi_pred = c_model.predict(tbi_X, batch_size=10)
+            tbi_pred = c_model.predict(x_tbi, batch_size=10)
             test_pred = c_model.predict(x_test, batch_size=10)
             hold_pred = c_model.predict(x_hold, batch_size=10)
 
-            tbi_pred = unnorm(tbi_pred, mean, rnge)
+            '''tbi_pred = unnorm(tbi_pred, mean, rnge)
             test_pred = unnorm(test_pred, mean, rnge)
             hold_pred = unnorm(hold_pred, mean, rnge)
 
-            tbi_y = unnorm(tbi_y, mean, rnge)
+            y_tbi = unnorm(y_tbi, mean, rnge)
             y_test = unnorm(y_test, mean, rnge)
-            y_hold = unnorm(y_hold, mean, rnge)
+            y_hold = unnorm(y_hold, mean, rnge)'''
 
             print "Base Test:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
             print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)] *len(y_hold))
-            print "Base TBI:", mean_absolute_error(tbi_y, [np.mean(tbi_y)] * len(tbi_y))
+            print "Base TBI:", mean_absolute_error(y_tbi, [np.mean(y_tbi)] * len(y_tbi))
 
             print "Test MAE:", mean_absolute_error(y_test, test_pred)
             print "Hold MAE:", mean_absolute_error(y_hold, hold_pred)
-            print "TBI MAE:", mean_absolute_error(tbi_y, tbi_pred)
-            print pd.DataFrame(zip(tbi_pred, tbi_y), columns=['y_pred', 'y_true'])
+            print "TBI MAE:", mean_absolute_error(y_tbi, tbi_pred)
+
+            print "Test R2:", r2_score(y_test, test_pred)
+            print "Hold R2:", r2_score(y_hold, hold_pred)
+            print "TBI R2:", r2_score(y_tbi, tbi_pred)
+
+            print pd.DataFrame(zip(tbi_pred, y_tbi), columns=['y_pred', 'y_true'])
             print pd.DataFrame(zip(test_pred, y_test), columns=['y_pred', 'y_true'])
         else:
             print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
