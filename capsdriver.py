@@ -254,7 +254,7 @@ def main():
         x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
         m = 'val_mean_absolute_error'
         mo = 'Min'
-        y_tbi = (y_tbi - mean) / rnge
+        #y_tbi = (y_tbi - mean) / rnge
 
     if args.sub > 0:
         x_train = x_train[:args.sub]
