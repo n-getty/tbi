@@ -109,7 +109,7 @@ def load_tbi():
 
     mean = np.mean(y)
     rnge = max(y) - min(y)
-    y = (y - mean) / rnge
+    #y = (y - mean) / rnge
 
     #x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
 
@@ -226,6 +226,7 @@ def main():
         tbi_X, tbi_y, tbi_mean, tbi_rnge = load_tbi()
         m = 'val_mean_absolute_error'
         mo = 'Min'
+        tbi_y = (tbi_y - mean) / rnge
 
     if args.sub > 0:
         x_train = x_train[:args.sub]
@@ -275,11 +276,11 @@ def main():
             test_pred = c_model.predict(x_test, batch_size=10)
             hold_pred = c_model.predict(x_hold, batch_size=10)
 
-            tbi_pred = unnorm(tbi_pred, tbi_mean, tbi_rnge)
+            tbi_pred = unnorm(tbi_pred, mean, rnge)
             test_pred = unnorm(test_pred, mean, rnge)
             hold_pred = unnorm(hold_pred, mean, rnge)
 
-            tbi_y = unnorm(tbi_y, tbi_mean, tbi_rnge)
+            tbi_y = unnorm(tbi_y, mean, rnge)
             y_test = unnorm(y_test, mean, rnge)
             y_hold = unnorm(y_hold, mean, rnge)
 
