@@ -20,6 +20,7 @@ import tensorflow as tf
 from GetBest import GetBest
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from sklearn.metrics import mean_absolute_error
+from collections import defaultdict
 
 
 def params():
@@ -69,12 +70,14 @@ def load_tumor():
     y = []
 
     path = 'data/tumor_data'
-
+    p_imgs = defaultdict(list())
     for file in os.listdir(path):
         f = h5py.File(os.path.join(path, file), 'r')
         label = int(f.get('cjdata/label')[0][0])
+        pid = int(f.get('cjdata/PID')[0])
         img = np.array(f.get('cjdata/image'))
         img = scipy.misc.imresize(img, (64, 64))
+        p_imgs[pid].append(img)
         X.append(img)
         l = [0, 0, 0]
         l[label - 1] = 1
@@ -199,9 +202,9 @@ def cnn_model3D():
     #x = Dropout(0.8)(x)
     pred = Dense(1, activation='linear', name='pred')(x)
     model = Model(img_input, pred, name='mri_regressor')
-    #ls = 'mean_absolute_error'
-    ls = 'mean_squared_error'
-    model.compile(loss=ls, optimizer='adam', metrics=['mae', 'mse'])
+    ls = 'mean_absolute_error'
+    #ls = 'mean_squared_error'
+    model.compile(loss=ls, optimizer='adam', metrics=['mae'])
     model.summary()
     return model
 
