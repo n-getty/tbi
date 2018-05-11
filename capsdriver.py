@@ -70,32 +70,51 @@ def load_tumor():
     y = []
 
     path = 'data/tumor_data'
-    p_imgs = defaultdict(list())
+    p_imgs = defaultdict(list)
+    p_type = {}
     for file in os.listdir(path):
         f = h5py.File(os.path.join(path, file), 'r')
         label = int(f.get('cjdata/label')[0][0])
-        pid = int(f.get('cjdata/PID')[0])
+        p = f.get('cjdata/PID')
+        pid = str(''.join([unichr(x[0]) for x in p]))
         img = np.array(f.get('cjdata/image'))
         img = scipy.misc.imresize(img, (64, 64))
-        p_imgs[pid].append(img)
-        X.append(img)
+        p_type[pid] = label
+        #X.append(img)
         l = [0, 0, 0]
         l[label - 1] = 1
-        y.append(l)
+        p_imgs[pid].append(img)
+        #y.append(l)
 
-    X = np.stack(X).reshape(len(X), 64, 64, 1).astype('float64') / 255
-    y = np.stack(y)
+    X = p_type.keys()
+    y = p_type.values()
+    #X = np.stack(X).reshape(len(X), 64, 64, 1).astype('float64') / 255
+    #y = np.stack(y)
 
     tts_split = train_test_split(
         X, y, range(y.shape[0]), test_size=0.3, random_state=0, stratify=y#np.argmax(y, axis=1)
     )
-    
-    x_train, x_test, y_train, y_test, train_idx, test_idx = tts_split
-    
-    x_train = x_train.reshape(x_train.shape[0], 64, 64, 1)
-    x_test = x_test.reshape(x_test.shape[0], 64, 64, 1)
 
-    return x_train, x_test[:-300], y_train, y_test[:-300], X, y, x_test[-300:], y_test[-300:]
+    px_train, px_test, py_train, py_test, train_idx, test_idx = tts_split
+
+    x_train, x_test, y_train, y_test = [],[],[],[]
+
+    for id in px_train:
+        x = p_imgs[id]
+        y_train.extend([p_type[id]] * len(x))
+        x = np.stack(x).reshape(len(x), 64, 64, 1).astype('float64') / 255
+        x_train.extend(x)
+
+    for id in px_test:
+        x = p_imgs[id]
+        y_test.extend([p_type[id]] * len(x))
+        x = np.stack(x).reshape(len(x), 64, 64, 1).astype('float64') / 255
+        x_test.extend(x)
+
+    #x_train = x_train.reshape(x_train.shape[0], 64, 64, 1)
+    #x_test = x_test.reshape(x_test.shape[0], 64, 64, 1)
+
+    return x_train, x_test[:-35], y_train, y_test[:-35], x_test[-35:], y_test[-35:]
 
 
 def load_tbi():
@@ -220,7 +239,7 @@ def main():
     args = params()
     d = 3
     if args.data == 'tumor':
-        x_train, x_test, y_train, y_test, X, y, x_hold, y_hold = load_tumor()
+        x_train, x_test, y_train, y_test, x_hold, y_hold = load_tumor()
         d = 2
         m = 'val_acc'
         mo = 'Max'
