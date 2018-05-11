@@ -92,7 +92,7 @@ def load_tumor():
     #y = np.stack(y)
 
     tts_split = train_test_split(
-        X, y, range(y.shape[0]), test_size=0.3, random_state=0, stratify=y#np.argmax(y, axis=1)
+        X, y, range(len(y)), test_size=0.3, random_state=0, stratify=y#np.argmax(y, axis=1)
     )
 
     px_train, px_test, py_train, py_test, train_idx, test_idx = tts_split
@@ -114,7 +114,7 @@ def load_tumor():
     #x_train = x_train.reshape(x_train.shape[0], 64, 64, 1)
     #x_test = x_test.reshape(x_test.shape[0], 64, 64, 1)
 
-    return x_train, x_test[:-35], y_train, y_test[:-35], x_test[-35:], y_test[-35:]
+    return x_train, x_test[:-300], y_train, y_test[:-300], x_test[-300:], y_test[-300:]
 
 
 def load_tbi():
