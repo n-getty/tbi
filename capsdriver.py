@@ -115,6 +115,9 @@ def load_tumor():
     x_train = x_train.reshape(x_train.shape[0], 64, 64, 1)
     x_test = x_test.reshape(x_test.shape[0], 64, 64, 1)
 
+    y_train = np.array(y_train)
+    y_test = np.array(y_test)
+    
     return x_train, x_test[:-300], y_train, y_test[:-300], x_test[-300:], y_test[-300:]
 
 
