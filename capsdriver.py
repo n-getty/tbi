@@ -187,7 +187,7 @@ def load_control():
     x_train = x_train.reshape(x_train.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
     x_test = x_test.reshape(x_test.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
 
-    return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge, bin_train, bin_test
+    return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge, bin_train, bin_test[:68], bin_test[68:]
 
 
 def cnn_model():
@@ -258,7 +258,7 @@ def main():
     if args.data == 'tbi':
         x_train, x_test, y_train, y_test, X, y = load_tbi()
     if args.data == 'control':
-        x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test = load_control()
+        x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold = load_control()
         x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
         m = 'val_mean_absolute_error'
         mo = 'Min'
