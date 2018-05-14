@@ -285,7 +285,7 @@ def main():
             c_model = cnn_model3D()
     if args.caps:
         model, eval_model, manipulate_model, reg_model = capsnet.CapsNet(input_shape=x_train.shape[1:],
-                                                              n_class=len(y_train[0]),
+                                                              n_class=len(bin_train[0]),
                                                               routings=args.routings, d=d)
         # compile the model
         model.compile(optimizer=optimizers.Adam(lr=args.lr),
