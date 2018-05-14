@@ -184,8 +184,8 @@ def load_control():
 
     x_train, x_test, y_train, y_test, bin_train, bin_test = tts_split
 
-    x_train = x_train.reshape(x_train.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
-    x_test = x_test.reshape(x_test.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
+    x_train = x_train.reshape(x_train.shape[0], 64, 64, 64, 1).astype('float16')# / 255
+    x_test = x_test.reshape(x_test.shape[0], 64, 64, 64, 1).astype('float16') #/ 255
 
     return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge, bin_train, bin_test[:68], bin_test[68:]
 
