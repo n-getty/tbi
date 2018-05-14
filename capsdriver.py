@@ -177,7 +177,7 @@ def load_control():
         cat_y.append(cat)
 
     #y = (y - mean) / rnge
-
+    cat_y = np.array(cat_y)
     tts_split = train_test_split(
         X, y, cat_y, test_size=0.2, random_state=0
     )
