@@ -165,21 +165,29 @@ def load_control():
 
     y = np.array([age_dict[id] for id in ids])
 
-
     mean = np.mean(y)
     rnge = max(y) - min(y)
+    mi = min(y)
+    bins = rnge / 10
+    cat_y = []
+    for v in y:
+        cat = [0] * 10
+        va = (v - mi) / bins
+        cat[int(va)] = 1
+        cat_y.append(cat)
+
     #y = (y - mean) / rnge
 
     tts_split = train_test_split(
-        X, y, range(y.shape[0]), test_size=0.2, random_state=0
+        X, y, cat_y, test_size=0.2, random_state=0
     )
 
-    x_train, x_test, y_train, y_test, train_idx, test_idx = tts_split
+    x_train, x_test, y_train, y_test, bin_train, bin_test = tts_split
 
     x_train = x_train.reshape(x_train.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
     x_test = x_test.reshape(x_test.shape[0], 64, 64, 64, 1) #.astype('float32') / 255
 
-    return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge
+    return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge, bin_train, bin_test
 
 
 def cnn_model():
@@ -250,7 +258,7 @@ def main():
     if args.data == 'tbi':
         x_train, x_test, y_train, y_test, X, y = load_tbi()
     if args.data == 'control':
-        x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge = load_control()
+        x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test = load_control()
         x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
         m = 'val_mean_absolute_error'
         mo = 'Min'
@@ -276,8 +284,8 @@ def main():
         else:
             c_model = cnn_model3D()
     if args.caps:
-        model, eval_model, manipulate_model = capsnet.CapsNet(input_shape=x_train.shape[1:],
-                                                              n_class=len(np.unique(np.argmax(y_train, 1))),
+        model, eval_model, manipulate_model, reg_model = capsnet.CapsNet(input_shape=x_train.shape[1:],
+                                                              n_class=len(y[0]),
                                                               routings=args.routings, d=d)
         # compile the model
         model.compile(optimizer=optimizers.Adam(lr=args.lr),
@@ -289,6 +297,11 @@ def main():
                       loss=[capsnet.margin_loss, 'mse'],
                       loss_weights=[1., args.lam_recon],
                       metrics={'capsnet': 'accuracy'})
+
+        reg_model.compile(optimizer=optimizers.Adam(lr=args.lr),
+                      loss=[capsnet.margin_loss, 'mse', 'mae'],
+                      loss_weights=[1., args.lam_recon, 1.],
+                      metrics={'capsnet': 'accuracy', 'reg': 'mae'})
 
     if args.cnn:
         c_model.fit(x_train, y_train,
@@ -336,19 +349,23 @@ def main():
     gb = GetBest(monitor='val_capsnet_acc', verbose=0, mode='max')
 
     if args.caps:
-        model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
-                  validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, gb], verbose=args.verb)
+        if d == 3:
+            reg_model.fit([x_train, bin_train], [bin_train, x_train, y_train], batch_size=args.batch_size, epochs=args.epochs,
+                      validation_data=[[x_test, bin_test], [bin_test, x_test, y_test]], callbacks=[lr_decay, gb], verbose=args.verb)
+        else:
+            model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
+                      validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, gb], verbose=args.verb)
 
-        w = model.get_weights()
-        print model.evaluate([x_test, y_test], [y_test, x_test], verbose=0)[3], model.evaluate([x_hold, y_hold], [y_hold, x_hold], verbose=0)[3]
+            w = model.get_weights()
+            print model.evaluate([x_test, y_test], [y_test, x_test], verbose=0)[3], model.evaluate([x_hold, y_hold], [y_hold, x_hold], verbose=0)[3]
 
-        eval_model.set_weights(w)
-        y_pred, _ = eval_model.predict(x_test, batch_size=100)
-        print np.argmax(y_pred, 1), np.argmax(y_test, 1)
-        print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1)) / float(y_test.shape[0]))
+            eval_model.set_weights(w)
+            y_pred, _ = eval_model.predict(x_test, batch_size=100)
+            print np.argmax(y_pred, 1), np.argmax(y_test, 1)
+            print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1)) / float(y_test.shape[0]))
 
-        y_pred, _ = eval_model.predict(x_hold, batch_size=100)
-        print('Hold acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
+            y_pred, _ = eval_model.predict(x_hold, batch_size=100)
+            print('Hold acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
 
 
 if __name__ == '__main__':
