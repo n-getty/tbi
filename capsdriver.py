@@ -172,7 +172,7 @@ def load_control():
     cat_y = []
     for v in y:
         cat = [0] * 10
-        va = (v - mi) / bins
+        va = (v - mi - 1) / bins
         cat[int(va)] = 1
         cat_y.append(cat)
 
