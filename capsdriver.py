@@ -254,7 +254,7 @@ def main():
         x_train, x_test, y_train, y_test, x_hold, y_hold = load_tumor()
         d = 2
         m = 'val_acc'
-        mo = 'Max'
+        mo = 'max'
         classes = 3
     if args.data == 'tbi':
         x_train, x_test, y_train, y_test, X, y = load_tbi()
@@ -263,7 +263,7 @@ def main():
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold = load_control()
         x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
         m = 'val_mean_absolute_error'
-        mo = 'Min'
+        mo = 'min'
         #y_tbi = (y_tbi - mean) / rnge
 
     if args.sub > 0:
@@ -310,7 +310,7 @@ def main():
                   batch_size=args.batch_size,
                   epochs=args.epochs,
                   verbose=args.verb,
-                  callbacks=[lr_decay, gb],
+                  callbacks=[lr_decay, gb, lr_red],
                   validation_data=(x_test, y_test),
                   class_weight='auto')
 
@@ -356,7 +356,7 @@ def main():
                       validation_data=[[x_test, bin_test], [bin_test, x_test, y_test]], callbacks=[lr_decay, gb], verbose=args.verb)
         else:
             model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
-                      validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, gb], verbose=args.verb)
+                      validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, gb, lr_red], verbose=args.verb)
 
             w = model.get_weights()
             print model.evaluate([x_test, y_test], [y_test, x_test], verbose=0)[3], model.evaluate([x_hold, y_hold], [y_hold, x_hold], verbose=0)[3]
