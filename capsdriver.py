@@ -147,16 +147,17 @@ def load_control():
     #fn = '/Users/ngetty/Downloads/control/ABIDE/'
     ids = []
     X = []
+    dim = 32
     for root, dirnames, filenames in os.walk(fn):
         for filename in fnmatch.filter(filenames, '*.nii'):
             fn = os.path.join(root, filename)
             img = nib.load(fn)
             img_data = img.get_data()
             ids.append(int(filename[6:11]))
-            img_data = resize(img_data, (64, 64, 64))
+            img_data = resize(img_data, (dim, dim, dim))
             X.append(img_data)
 
-    X = np.stack(X).reshape(len(X), 64, 64, 64, 1)
+    X = np.stack(X).reshape(len(X), dim, dim, dim, 1)
 
     infile = 'data/control.csv'
     df = pd.read_csv(infile, usecols=['Subject', 'Age', 'Description'])
@@ -184,8 +185,8 @@ def load_control():
 
     x_train, x_test, y_train, y_test, bin_train, bin_test = tts_split
 
-    x_train = x_train.reshape(x_train.shape[0], 64, 64, 64, 1).astype('float16')# / 255
-    x_test = x_test.reshape(x_test.shape[0], 64, 64, 64, 1).astype('float16') #/ 255
+    x_train = x_train.reshape(x_train.shape[0], dim, dim, dim, 1).astype('float16')# / 255
+    x_test = x_test.reshape(x_test.shape[0], dim, dim, dim, 1).astype('float16') #/ 255
 
     return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge, bin_train, bin_test[:68], bin_test[68:]
 
