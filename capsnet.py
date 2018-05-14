@@ -41,6 +41,8 @@ def CapsNet(input_shape, n_class, routings, d):
     # If using tensorflow, this will not be necessary. :)
     out_caps = Length(name='capsnet')(digitcaps)
 
+    reg_pred = layers.Dense(1, activation='linear', name='reg')(out_caps)
+
     # Decoder network.
     y = layers.Input(shape=(n_class,))
     masked_by_y = Mask()([digitcaps, y])  # The true label is used to mask the output of capsule layer. For training
@@ -57,13 +59,16 @@ def CapsNet(input_shape, n_class, routings, d):
     train_model = models.Model([x, y], [out_caps, decoder(masked_by_y)])
     eval_model = models.Model(x, [out_caps, decoder(masked)])
 
+    reg_model = models.Model([x, y], [out_caps, decoder(masked_by_y), reg_pred])
+    #reg_eval = models.Model(x, [reg_pred, decoder(masked)])
+
     # manipulate model
     noise = layers.Input(shape=(n_class, 16))
     noised_digitcaps = layers.Add()([digitcaps, noise])
     masked_noised_y = Mask()([noised_digitcaps, y])
     manipulate_model = models.Model([x, y, noise], decoder(masked_noised_y))
 
-    return train_model, eval_model, manipulate_model
+    return train_model, eval_model, manipulate_model, reg_model
 
 
 def margin_loss(y_true, y_pred):
