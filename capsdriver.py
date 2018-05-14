@@ -255,9 +255,11 @@ def main():
         d = 2
         m = 'val_acc'
         mo = 'Max'
+        classes = 3
     if args.data == 'tbi':
         x_train, x_test, y_train, y_test, X, y = load_tbi()
     if args.data == 'control':
+        classes = 10
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold = load_control()
         x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
         m = 'val_mean_absolute_error'
@@ -285,7 +287,7 @@ def main():
             c_model = cnn_model3D()
     if args.caps:
         model, eval_model, manipulate_model, reg_model = capsnet.CapsNet(input_shape=x_train.shape[1:],
-                                                              n_class=len(bin_train[0]),
+                                                              n_class=classes,
                                                               routings=args.routings, d=d)
         # compile the model
         model.compile(optimizer=optimizers.Adam(lr=args.lr),
