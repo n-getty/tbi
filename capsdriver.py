@@ -262,7 +262,9 @@ def main():
     if args.data == 'control':
         classes = 10
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold = load_control()
-        x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
+        tbi = False
+        if tbi:
+            x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
         m = 'val_mean_absolute_error'
         mo = 'min'
         #y_tbi = (y_tbi - mean) / rnge

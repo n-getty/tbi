@@ -37,11 +37,16 @@ def CapsNet(input_shape, n_class, routings, d):
     digitcaps = CapsuleLayer(num_capsule=n_class, dim_capsule=16, routings=routings,
                              name='digitcaps')(primarycaps)
 
+    # Layer 3: Capsule layer. Routing algorithm works here.
+    regcaps = CapsuleLayer(num_capsule=1, dim_capsule=16, routings=routings,
+                             name='digitcaps')(primarycaps)
+
     # Layer 4: This is an auxiliary layer to replace each capsule with its length. Just to match the true label's shape.
     # If using tensorflow, this will not be necessary. :)
     out_caps = Length(name='capsnet')(digitcaps)
 
-    reg_pred = layers.Flatten(name='flatten')(digitcaps)
+    out_reg = Length(name='capsreg')(regcaps)
+    reg_pred = layers.Flatten(name='flatten')(out_reg)
     reg_pred = layers.Dense(1024, activation='relu')(reg_pred)
     reg_pred = layers.Dense(1, activation='linear', name='reg')(reg_pred)
 
