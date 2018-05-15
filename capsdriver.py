@@ -147,7 +147,7 @@ def load_control():
     #fn = '/Users/ngetty/Downloads/control/ABIDE/'
     ids = []
     X = []
-    dim = 32
+    dim = 64
     for root, dirnames, filenames in os.walk(fn):
         for filename in fnmatch.filter(filenames, '*.nii'):
             fn = os.path.join(root, filename)
