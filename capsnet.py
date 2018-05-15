@@ -65,7 +65,7 @@ def CapsNet(input_shape, n_class, routings, d):
     train_model = models.Model([x, y], [out_caps, decoder(masked_by_y)])
     eval_model = models.Model(x, [out_caps, decoder(masked)])
 
-    reg_model = models.Model([x, y], [out_caps, decoder(masked_by_y), reg_pred])
+    reg_model = models.Model([x, y], [reg_pred, decoder(masked_by_y)])
     #reg_eval = models.Model(x, [reg_pred, decoder(masked)])
 
     # manipulate model
