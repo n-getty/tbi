@@ -45,7 +45,7 @@ def CapsNet(input_shape, n_class, routings, d):
     # If using tensorflow, this will not be necessary. :)
     out_caps = Length(name='capsnet')(digitcaps)
 
-    out_reg = Length(name='capsreg')(out_caps)
+    out_reg = Length(name='capsreg')(digitcaps)
     reg_pred = layers.Dense(1024, activation='relu')(out_reg)
     reg_pred = layers.Dense(1, activation='linear', name='reg')(reg_pred)
 
