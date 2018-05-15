@@ -304,9 +304,9 @@ def main():
                       metrics={'capsnet': 'accuracy'})
 
         reg_model.compile(optimizer=optimizers.Adam(lr=args.lr),
-                      loss=[capsnet.margin_loss, 'mse', 'mae'],
-                      loss_weights=[1., args.lam_recon, 1.],
-                      metrics={'capsnet': 'accuracy', 'reg': 'mae'})
+                      loss=['mse', 'mae'],
+                      loss_weights=[args.lam_recon, 1.],
+                      metrics={'reg': 'mae'})
 
     if args.cnn:
         c_model.fit(x_train, y_train,
@@ -355,8 +355,8 @@ def main():
 
     if args.caps:
         if d == 3:
-            reg_model.fit([x_train, bin_train], [bin_train, x_train, y_train], batch_size=args.batch_size, epochs=args.epochs,
-                      validation_data=[[x_test, bin_test], [bin_test, x_test, y_test]], callbacks=[lr_decay, gb], verbose=args.verb)
+            reg_model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
+                      validation_data=[[x_test, y_test], [y_test, x_test, y_test]], callbacks=[lr_decay, gb], verbose=args.verb)
         else:
             model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
                       validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, gb, lr_red], verbose=args.verb)
