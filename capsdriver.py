@@ -260,6 +260,7 @@ def main():
     if args.data == 'tbi':
         x_train, x_test, y_train, y_test, X, y = load_tbi()
     if args.data == 'control':
+        print "loading control"
         classes = 10
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold = load_control()
         tbi = False
@@ -268,6 +269,7 @@ def main():
         m = 'val_mean_absolute_error'
         mo = 'min'
         #y_tbi = (y_tbi - mean) / rnge
+        print "control loaded"
 
     if args.sub > 0:
         x_train = x_train[:args.sub]
