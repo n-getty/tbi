@@ -46,8 +46,7 @@ def CapsNet(input_shape, n_class, routings, d):
     out_caps = Length(name='capsnet')(digitcaps)
 
     out_reg = Length(name='capsreg')(regcaps)
-    reg_pred = layers.Flatten(name='flatten')(out_reg)
-    reg_pred = layers.Dense(1024, activation='relu')(reg_pred)
+    reg_pred = layers.Dense(1024, activation='relu')(out_reg)
     reg_pred = layers.Dense(1, activation='linear', name='reg')(reg_pred)
 
     # Decoder network.
