@@ -493,7 +493,7 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
 
 def main():
     args = params()
-    X_train, X_test, y_train, y_test, X_hold, y_hold, train_recon, test_recon = load_tumor()
+    X_train, X_test, y_train, y_test, X_hold, y_hold, test_recon = load_tumor()
 
     if args.sub > 0:
         X_train = X_train[:args.sub]
