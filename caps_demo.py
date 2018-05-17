@@ -326,6 +326,8 @@ class GetBest(Callback):
 
 
 """Utils"""
+
+
 def install(package):
     pip.main(['install', package])
 
@@ -394,7 +396,7 @@ def load_tumor():
 
     for id in pX_test:
         x = p_imgs[id]
-        p_recon = ([len(X_train) - 1, len(x) - 1], p_type[id])
+        p_recon = ([len(X_test) - 1, len(x) - 1], p_type[id])
         test_recon.append(p_recon)
         y_test.extend([p_type[id]] * len(x))
         x = np.stack(x).reshape(len(x), 64, 64, 1).astype('float64') / 255
@@ -446,6 +448,7 @@ def params():
 def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_recon):
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     gb = GetBest(monitor='val_capsnet_acc', verbose=0, mode='max')
+    lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
 
     model, eval_model = CapsNet(input_shape=X_train.shape[1:], n_class=3, routings=args.routings)
 
@@ -463,7 +466,7 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
                        metrics={'capsnet': 'accuracy'})
 
     model.fit([X_train, y_train], [y_train, X_train], batch_size=args.batch_size, epochs=args.epochs,
-              validation_data=[[X_test, y_test], [y_test, X_test]], callbacks=[lr_decay, gb], verbose=args.verb)
+              validation_data=[[X_test, y_test], [y_test, X_test]], callbacks=[lr_decay, gb, lr_red], verbose=args.verb)
 
     w = model.get_weights()
 
