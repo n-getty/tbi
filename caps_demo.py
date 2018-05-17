@@ -21,6 +21,8 @@ from tempfile import mktemp
 import fnmatch
 import pip
 from collections import Counter
+import random
+
 
 """
 Capsnet Keras Implementation Author: Xifeng Guo, E-mail: `guoxifeng1990@163.com`, Github: `https://github.com/XifengGuo/CapsNet-Keras`
@@ -331,6 +333,17 @@ class GetBest(Callback):
 """Utils"""
 
 
+def set_seed(seed):
+    os.environ['PYTHONHASHSEED'] = '0'
+    np.random.seed(seed)
+
+    random.seed(seed)
+
+    if K.backend() == 'tensorflow':
+        import tensorflow as tf
+        tf.set_random_seed(seed)
+
+
 def install(package):
     pip.main(['install', package])
 
@@ -437,7 +450,13 @@ def params():
     parser.add_argument('-r', '--routings', default=3, type=int,
                         help="Number of iterations used in routing algorithm. should > 0")
     parser.add_argument('--data', default='tumor')
+    parser.add_argument('--save_dir', default='./result')
+    parser.add_argument('-w', '--weights', default=None,
+                        help="The path of the saved weights. Should be specified when testing")
     args = parser.parse_args()
+
+    if not os.path.exists(args.save_dir):
+        os.makedirs(args.save_dir)
 
     return args
 
@@ -446,6 +465,8 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     gb = GetBest(monitor='val_capsnet_acc', verbose=0, mode='max')
     lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
+    checkpoint = callbacks.ModelCheckpoint(args.save_dir + '/weights-{epoch:02d}.h5', monitor='val_capsnet_acc',
+                                           save_best_only=True, save_weights_only=True, verbose=1)
 
     model, eval_model = CapsNet(input_shape=X_train.shape[1:], n_class=3, routings=args.routings)
 
@@ -462,8 +483,11 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
                        loss_weights=[1., args.lam_recon],
                        metrics={'capsnet': 'accuracy'})
 
+    if args.weights:
+        model.load_weights('weights/' + args.weights)
+
     model.fit([X_train, y_train], [y_train, X_train], batch_size=args.batch_size, epochs=args.epochs,
-              validation_data=[[X_test, y_test], [y_test, X_test]], callbacks=[lr_decay, gb, lr_red], verbose=args.verb)
+              validation_data=[[X_test, y_test], [y_test, X_test]], callbacks=[lr_decay, gb, lr_red, checkpoint], verbose=args.verb)
 
     w = model.get_weights()
 
