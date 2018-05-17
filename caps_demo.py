@@ -488,7 +488,7 @@ def main():
         X_train = X_train[:args.sub]
         y_train = y_train[:args.sub]
 
-    print "Training on %d images, testing on %d images with %d holdout" % len(y_train), len(y_test), len(y_hold)
+    print "Training on %d images, testing on %d images with %d holdout" % (len(y_train), len(y_test), len(y_hold))
     train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_recon)
 
 
