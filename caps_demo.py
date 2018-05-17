@@ -432,9 +432,6 @@ def params():
     parser.add_argument('--data', default='tumor')
     args = parser.parse_args()
 
-    if not os.path.exists(args.save_dir):
-        os.makedirs(args.save_dir)
-
     return args
 
 
