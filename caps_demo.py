@@ -429,14 +429,7 @@ def params():
                         help="The coefficient for the loss of decoder")
     parser.add_argument('-r', '--routings', default=3, type=int,
                         help="Number of iterations used in routing algorithm. should > 0")
-    parser.add_argument('--caps', action='store_true',
-                        help="Use caps model")
-    parser.add_argument('--save_dir', default='./result')
     parser.add_argument('--data', default='tumor')
-    parser.add_argument('-t', '--testing', action='store_true',
-                        help="Test the trained model on testing dataset")
-    parser.add_argument('-w', '--weights', default=None,
-                        help="The path of the saved weights. Should be specified when testing")
     args = parser.parse_args()
 
     if not os.path.exists(args.save_dir):
@@ -483,10 +476,17 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
     tc = 0
     for p in test_recon:
         rge, label = p
+        print rge
+        print label
+        print y_pred[rge]
+        print np.argmax(label)
+        print len(y_pred[rge])
+        print len(y_pred[rge])/3
         if np.sum(y_pred[rge] == np.argmax(label)) > (len(y_pred[rge]) / 3):
             tc += 1
+        exit()
 
-    print('Majority test acc:', tc / float(y_hold.shape[0] + y_test.shape[0]))
+    print('Majority test acc:', tc / float(y_pred.shape[0]))
 
 
 def main():
