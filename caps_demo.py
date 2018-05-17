@@ -475,25 +475,18 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
     y_pred = np.argmax(y_pred, 1)
     print('Test acc:', np.sum(y_pred == np.argmax(y_test, 1)) / float(y_test.shape[0]))
 
+    y_hold_pred, _ = eval_model.predict(X_hold, batch_size=args.batch_size)
+    y_hold_pred = np.argmax(y_pred, 1)
+    print('Hold acc:', np.sum(y_hold_pred == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
+
+    y_pred.extend(y_hold_pred)
     tc = 0
     for p in test_recon:
         rge, label = p
         if np.sum(y_pred[rge] == label) > len(y_pred[rge]) / 3:
             tc += 1
 
-    print('Majority Test acc:', tc / float(y_test.shape[0]))
-
-    y_pred, _ = eval_model.predict(X_hold, batch_size=args.batch_size)
-    y_pred = np.argmax(y_pred, 1)
-    print('Hold acc:', np.sum(y_pred == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
-
-    tc = 0
-    for p in test_recon:
-        rge, label = p
-        if np.sum(y_pred[rge] == label) > len(y_pred[rge]) / 3:
-            tc += 1
-
-    print('Majority Hold acc:', tc / float(y_hold.shape[0]))
+    print('Majority test acc:', tc / float(y_hold.shape[0] + y_test.shape[0]))
 
 
 def main():
