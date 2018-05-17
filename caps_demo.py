@@ -479,7 +479,7 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
     y_hold_pred = np.argmax(y_hold_pred, 1)
     print('Hold acc:', np.sum(y_hold_pred == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
 
-    y_pred = y_pred.concatenate(y_hold_pred)
+    y_pred = np.concatenate(y_pred, y_hold_pred)
     tc = 0
     for p in test_recon:
         rge, label = p
