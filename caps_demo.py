@@ -481,8 +481,7 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
         if Counter(y_pred[rge[0]: rge[1]]).most_common(1)[0][0] == np.argmax(label):
             tc += 1
 
-    print tc
-    print('Majority test acc:', tc / float(len(test_recon)))
+    # print('Majority test acc:', tc / float(len(test_recon)))
 
 
 def main():
