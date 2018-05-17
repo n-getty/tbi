@@ -483,7 +483,7 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
     tc = 0
     for p in test_recon:
         rge, label = p
-        if np.sum(y_pred[rge] == label) > len(y_pred[rge]) / 3:
+        if np.sum(y_pred[rge] == np.argmax(label)) > len(y_pred[rge]) / 3:
             tc += 1
 
     print('Majority test acc:', tc / float(y_hold.shape[0] + y_test.shape[0]))
