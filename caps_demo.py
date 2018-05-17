@@ -397,7 +397,7 @@ def load_tumor():
 
     for id in pX_test:
         x = p_imgs[id]
-        p_recon = ([len(X_test), len(x) - 1], p_type[id])
+        p_recon = ([len(X_test), len(X_test) + len(x) - 1], p_type[id])
         test_recon.append(p_recon)
         y_test.extend([p_type[id]] * len(x))
         x = np.stack(x).reshape(len(x), 64, 64, 1).astype('float64') / 255
@@ -472,10 +472,8 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
 
     y_pred = np.concatenate([y_pred, y_hold_pred])
     tc = 0
-    print len(y_pred)
     for p in test_recon:
         rge, label = p
-        print rge
         if Counter(y_pred[rge[0]: rge[1]]).most_common(1)[0][0] == np.argmax(label):
             tc += 1
 
@@ -490,6 +488,7 @@ def main():
         X_train = X_train[:args.sub]
         y_train = y_train[:args.sub]
 
+    print "Training on %d images, testing on %d images with %d holdout" % len(y_train), len(y_test), len(y_hold)
     train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_recon)
 
 
