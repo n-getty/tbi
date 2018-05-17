@@ -472,12 +472,14 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
 
     y_pred = np.concatenate([y_pred, y_hold_pred])
     tc = 0
+    print len(y_pred)
     for p in test_recon:
         rge, label = p
+        print rge
         if Counter(y_pred[rge[0]: rge[1]]).most_common(1)[0][0] == np.argmax(label):
             tc += 1
 
-    print('Majority test acc:', tc / float(y_pred.shape[0]))
+    print('Majority test acc:', tc / float(len(test_recon)))
 
 
 def main():
