@@ -341,7 +341,7 @@ def dl_tumor_data(path):
     file.extractall(destDir)
     file.close()
 
-    for root, dirnames, filenames in os.walk('test'):
+    for root, dirnames, filenames in os.walk('data'):
         for filename in fnmatch.filter(filenames, '*.zip'):
             fn = os.path.join(root, filename)
             file = ZipFile(fn)
