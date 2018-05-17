@@ -397,7 +397,11 @@ def load_tumor():
 
     for id in pX_test:
         x = p_imgs[id]
-        p_recon = ([len(X_test), len(X_test) + len(x) - 1], p_type[id])
+        rge = len(X_test) + len(x)
+        if len(x) > 1:
+            rge =- 1
+            
+        p_recon = ([len(X_test), rge], p_type[id])
         test_recon.append(p_recon)
         y_test.extend([p_type[id]] * len(x))
         x = np.stack(x).reshape(len(x), 64, 64, 1).astype('float64') / 255
