@@ -167,7 +167,7 @@ class CapsuleLayer(layers.Layer):
 
 def PrimaryCap(inputs, dim_capsule, n_channels, kernel_size, strides, padding):
     """
-    Apply Conv3D `n_channels` times and concatenate all capsules
+    Apply Conv2D `n_channels` times and concatenate all capsules
     :param inputs: 4D tensor, shape=[None, width, height, channels]
     :param dim_capsule: the dim of the output vector of capsule
     :param n_channels: the number of types of capsules
@@ -194,7 +194,7 @@ def CapsNet(input_shape, n_class, routings):
     x = layers.Input(shape=input_shape)
 
     # Layer 1: Just a conventional Conv2D layer
-    conv1 = layers.Conv3D(filters=64, kernel_size=9, strides=1, padding='valid', activation='relu', name='conv1')(x)
+    conv1 = layers.Conv2D(filters=64, kernel_size=9, strides=1, padding='valid', activation='relu', name='conv1')(x)
 
     # Layer 2: Conv2D layer with `squash` activation, then reshape to [None, num_capsule, dim_capsule]
     primarycaps = PrimaryCap(conv1, dim_capsule=8, n_channels=32, kernel_size=9, strides=2, padding='valid')
