@@ -478,7 +478,7 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
     tc = 0
     for p in test_recon:
         rge, label = p
-        print rge
+        print Counter(y_pred[rge[0]: rge[1]]), label
         if Counter(y_pred[rge[0]: rge[1]]).most_common(1)[0][0] == np.argmax(label):
             tc += 1
 
