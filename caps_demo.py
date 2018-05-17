@@ -2,6 +2,7 @@
 import tensorflow as tf
 from keras import initializers, callbacks, optimizers, layers, models, backend as K
 from keras.callbacks import Callback
+
 K.set_image_data_format('channels_last')
 
 # Other imports
@@ -13,12 +14,13 @@ import argparse
 from collections import defaultdict
 import warnings
 from zipfile import ZipFile
-from urllib import urlretrieve
+# from urllib import urlretrieve
+from six.moves.urllib.request import urlretrieve
+import six
 from tempfile import mktemp
 import fnmatch
 import pip
 from collections import Counter
-
 
 """
 Capsnet Keras Implementation Author: Xifeng Guo, E-mail: `guoxifeng1990@163.com`, Github: `https://github.com/XifengGuo/CapsNet-Keras`
@@ -174,7 +176,7 @@ def PrimaryCap(inputs, dim_capsule, n_channels, kernel_size, strides, padding):
     :param n_channels: the number of types of capsules
     :return: output tensor, shape=[None, num_capsule, dim_capsule]
     """
-    
+
     output = layers.Conv2D(filters=dim_capsule * n_channels, kernel_size=kernel_size, strides=strides,
                            padding=padding,
                            name='primarycap_conv2d')(inputs)
@@ -334,7 +336,7 @@ def install(package):
 
 
 def dl_tumor_data(path):
-    print "Downloading tumor data"
+    print("Downloading tumor data")
     os.makedirs(path)
     url = "https://ndownloader.figshare.com/articles/1512427/versions/5"
     filename = mktemp('.zip')
@@ -355,11 +357,11 @@ def dl_tumor_data(path):
 def load_tumor():
     try:
         import h5py
-    except ImportError, _:
-        print "Installing h5py package to read matlab files"
+    except ImportError:
+        print("Installing h5py package to read matlab files")
         install('h5py')
 
-    print "Loading tumor sets"
+    print("Loading tumor sets")
 
     path = 'data/tumor'
     if not os.path.exists(path):
@@ -371,7 +373,7 @@ def load_tumor():
         f = h5py.File(os.path.join(path, file), 'r')
         label = int(f.get('cjdata/label')[0][0])
         p = f.get('cjdata/PID')
-        pid = str(''.join([unichr(x[0]) for x in p]))
+        pid = str(''.join([six.unichr(x[0]) for x in p]))
         img = np.array(f.get('cjdata/image'))
         img = scipy.misc.imresize(img, (64, 64))
         l = [0, 0, 0]
@@ -379,8 +381,8 @@ def load_tumor():
         p_imgs[pid].append(img)
         p_type[pid] = l
 
-    X = p_type.keys()
-    y = p_type.values()
+    X = list(p_type.keys())
+    y = list(p_type.values())
 
     tts_split = train_test_split(
         X, y, range(len(y)), test_size=0.3, random_state=0, stratify=y)
@@ -481,7 +483,7 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
         if Counter(y_pred[rge[0]: rge[1]]).most_common(1)[0][0] == np.argmax(label):
             tc += 1
 
-    # print('Majority test acc:', tc / float(len(test_recon)))
+            # print('Majority test acc:', tc / float(len(test_recon)))
 
 
 def main():
@@ -492,7 +494,7 @@ def main():
         X_train = X_train[:args.sub]
         y_train = y_train[:args.sub]
 
-    print "Training on %d images, testing on %d images with %d holdout" % (len(y_train), len(y_test), len(y_hold))
+    print("Training on %d images, testing on %d images with %d holdout" % (len(y_train), len(y_test), len(y_hold)))
     train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_recon)
 
 
