@@ -476,7 +476,7 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
     print('Test acc:', np.sum(y_pred == np.argmax(y_test, 1)) / float(y_test.shape[0]))
 
     y_hold_pred, _ = eval_model.predict(X_hold, batch_size=args.batch_size)
-    y_hold_pred = np.argmax(y_pred, 1)
+    y_hold_pred = np.argmax(y_hold_pred, 1)
     print('Hold acc:', np.sum(y_hold_pred == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
 
     y_pred.extend(y_hold_pred)
