@@ -17,6 +17,7 @@ from urllib import urlretrieve
 from tempfile import mktemp
 import fnmatch
 import pip
+from collections import Counter
 
 
 """
@@ -396,7 +397,7 @@ def load_tumor():
 
     for id in pX_test:
         x = p_imgs[id]
-        p_recon = ([len(X_test) - 1, len(x) - 1], p_type[id])
+        p_recon = ([len(X_test), len(x) - 1], p_type[id])
         test_recon.append(p_recon)
         y_test.extend([p_type[id]] * len(x))
         x = np.stack(x).reshape(len(x), 64, 64, 1).astype('float64') / 255
@@ -473,15 +474,8 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
     tc = 0
     for p in test_recon:
         rge, label = p
-        print rge
-        print label
-        print y_pred[rge]
-        print np.argmax(label)
-        print len(y_pred[rge])
-        print len(y_pred[rge])/3
-        if np.sum(y_pred[rge] == np.argmax(label)) > (len(y_pred[rge]) / 3):
+        if Counter(y_pred[rge[0]: rge[1]]).most_common(1)[0][0] == np.argmax(label):
             tc += 1
-        exit()
 
     print('Majority test acc:', tc / float(y_pred.shape[0]))
 
