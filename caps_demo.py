@@ -399,8 +399,8 @@ def load_tumor():
         x = p_imgs[id]
         rge = len(X_test) + len(x)
         if len(x) > 1:
-            rge =- 1
-            
+            rge -= 1
+
         p_recon = ([len(X_test), rge], p_type[id])
         test_recon.append(p_recon)
         y_test.extend([p_type[id]] * len(x))
