@@ -483,7 +483,7 @@ def get_models(args, shape):
 
     # Eval model does not use labels to mask capsnet output
     # instead it uses the capsule with greatest length (probability)
-    eval_model.compile(optimizer=optimizers.Adam(lr=args.lr),
+    '''eval_model.compile(optimizer=optimizers.Adam(lr=args.lr),
                        loss=[margin_loss, 'mse'],
                        loss_weights=[1., args.lam_recon],
                        metrics={'capsnet': 'accuracy'})
@@ -491,7 +491,7 @@ def get_models(args, shape):
     manipulate_model.compile(optimizer=optimizers.Adam(lr=args.lr),
                        loss=[margin_loss, 'mse'],
                        loss_weights=[1., args.lam_recon],
-                       metrics={'capsnet': 'accuracy'})
+                       metrics={'capsnet': 'accuracy'})'''
 
     if args.weights:
         model.load_weights('weights/' + args.weights)
