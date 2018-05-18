@@ -501,7 +501,7 @@ def get_models(args, shape):
     return model, eval_model, manipulate_model
 
 
-def train_model(X_train, X_test, y_train, y_test, args, model):
+def train_model(model, X_train, X_test, y_train, y_test, args):
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     gb = GetBest(monitor='val_capsnet_acc', verbose=0, mode='max')
     lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
@@ -569,7 +569,7 @@ def main():
 
     print("Training on %d images, testing on %d images with %d holdout" % (len(y_train), len(y_test), len(y_hold)))
     if args.train:
-        train_model(X_train, X_test, y_train, y_test, args)
+        train_model(model, X_train, X_test, y_train, y_test, args)
     test_model(eval_model, X_test, y_test, X_hold, y_hold, test_recon, args)
     if args.type:
         manipulate_latent(manipulate_model, (np.concatenate([X_test, X_hold]), np.concatenate([y_test, y_hold])), args)
