@@ -22,6 +22,8 @@ import fnmatch
 import pip
 from collections import Counter
 import random
+from utils import combine_images
+from PIL import Image
 
 
 """
@@ -228,7 +230,13 @@ def CapsNet(input_shape, n_class, routings):
     train_model = models.Model([x, y], [out_caps, decoder(masked_by_y)])
     eval_model = models.Model(x, [out_caps, decoder(masked)])
 
-    return train_model, eval_model
+    # manipulate model
+    noise = layers.Input(shape=(n_class, 16))
+    noised_digitcaps = layers.Add()([digitcaps, noise])
+    masked_noised_y = Mask()([noised_digitcaps, y])
+    manipulate_model = models.Model([x, y, noise], decoder(masked_noised_y))
+
+    return train_model, eval_model, manipulate_model
 
 
 def margin_loss(y_true, y_pred):
@@ -449,10 +457,13 @@ def params():
                         help="The coefficient for the loss of decoder")
     parser.add_argument('-r', '--routings', default=3, type=int,
                         help="Number of iterations used in routing algorithm. should > 0")
-    parser.add_argument('--data', default='tumor')
     parser.add_argument('--save_dir', default='./result')
     parser.add_argument('-w', '--weights', default=None,
-                        help="The path of the saved weights. Should be specified when testing")
+                        help="The path of the saved weights")
+    parser.add_argument('-train', default=True,
+                        help="Train/retrain the loaded model?")
+    parser.add_argument('--type', default=None, type=int,
+                        help="Tumor type to manipulate")
     args = parser.parse_args()
 
     if not os.path.exists(args.save_dir):
@@ -461,14 +472,8 @@ def params():
     return args
 
 
-def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_recon):
-    lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
-    gb = GetBest(monitor='val_capsnet_acc', verbose=0, mode='max')
-    lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
-    checkpoint = callbacks.ModelCheckpoint(args.save_dir + '/weights-{epoch:02d}.h5', monitor='val_capsnet_acc',
-                                           save_best_only=True, save_weights_only=True, verbose=1)
-
-    model, eval_model = CapsNet(input_shape=X_train.shape[1:], n_class=3, routings=args.routings)
+def get_models(args, shape):
+    model, eval_model, manipulate_model = CapsNet(input_shape=shape, n_class=3, routings=args.routings)
 
     # compile the model
     model.compile(optimizer=optimizers.Adam(lr=args.lr),
@@ -483,15 +488,31 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
                        loss_weights=[1., args.lam_recon],
                        metrics={'capsnet': 'accuracy'})
 
+    manipulate_model.compile(optimizer=optimizers.Adam(lr=args.lr),
+                       loss=[margin_loss, 'mse'],
+                       loss_weights=[1., args.lam_recon],
+                       metrics={'capsnet': 'accuracy'})
+
     if args.weights:
         model.load_weights('weights/' + args.weights)
+        eval_model.load_weights('weights/' + args.weights)
+        manipulate_model.load_weights('weights/' + args.weights)
+
+    return model, eval_model, manipulate_model
+
+
+def train_model(X_train, X_test, y_train, y_test, args, model):
+    lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
+    gb = GetBest(monitor='val_capsnet_acc', verbose=0, mode='max')
+    lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
+    checkpoint = callbacks.ModelCheckpoint(args.save_dir + '/weights-{epoch:02d}.h5', monitor='val_capsnet_acc',
+                                           save_best_only=True, save_weights_only=True, verbose=1)
 
     model.fit([X_train, y_train], [y_train, X_train], batch_size=args.batch_size, epochs=args.epochs,
               validation_data=[[X_test, y_test], [y_test, X_test]], callbacks=[lr_decay, gb, lr_red, checkpoint], verbose=args.verb)
 
-    w = model.get_weights()
 
-    eval_model.set_weights(w)
+def test_model(eval_model, X_test, y_test, X_hold, y_hold, test_recon, args):
     y_pred, _ = eval_model.predict(X_test, batch_size=args.batch_size)
     y_pred = np.argmax(y_pred, 1)
     print('Test acc:', np.sum(y_pred == np.argmax(y_test, 1)) / float(y_test.shape[0]))
@@ -510,16 +531,48 @@ def train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_rec
             # print('Majority test acc:', tc / float(len(test_recon)))
 
 
+def manipulate_latent(model, data, args):
+    print('-' * 30 + 'Begin: manipulate' + '-' * 30)
+    x_test, y_test = data
+    index = np.argmax(y_test, 1) == args.type
+    number = np.random.randint(low=0, high=sum(index) - 1)
+    x, y = x_test[index][number], y_test[index][number]
+    x, y = np.expand_dims(x, 0), np.expand_dims(y, 0)
+    noise = np.zeros([1, 3, 16])
+    x_recons = []
+    for dim in range(16):
+        for r in [-0.25, -0.2, -0.15, -0.1, -0.05, 0, 0.05, 0.1, 0.15, 0.2, 0.25]:
+            tmp = np.copy(noise)
+            tmp[:, :, dim] = r
+            x_recon = model.predict([x, y, tmp])
+            x_recons.append(x_recon)
+
+    x_recons = np.concatenate(x_recons)
+
+    img = combine_images(x_recons, height=16)
+    image = img * 255
+    Image.fromarray(image.astype(np.uint8)).save(args.save_dir + '/manipulate-%d.png' % args.type)
+    print('manipulated result saved to %s/manipulate-%d.png' % (args.save_dir, args.type))
+    print('-' * 30 + 'End: manipulate' + '-' * 30)
+
+
 def main():
     args = params()
+    set_seed(42)
+
     X_train, X_test, y_train, y_test, X_hold, y_hold, test_recon = load_tumor()
+    model, eval_model, manipulate_model = get_models(args, X_train.shape[1:])
 
     if args.sub > 0:
         X_train = X_train[:args.sub]
         y_train = y_train[:args.sub]
 
     print("Training on %d images, testing on %d images with %d holdout" % (len(y_train), len(y_test), len(y_hold)))
-    train_model(X_train, X_test, y_train, y_test, X_hold, y_hold, args, test_recon)
+    if args.train:
+        train_model(X_train, X_test, y_train, y_test, args)
+    test_model(eval_model, X_test, y_test, X_hold, y_hold, test_recon, args)
+    if args.type:
+        manipulate_latent(manipulate_model, (np.concatenate([X_test, X_hold]), np.concatenate([y_test, y_hold])), args)
 
 
 if __name__ == '__main__':
