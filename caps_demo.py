@@ -456,11 +456,11 @@ def params():
     parser.add_argument('--lam_recon', default=0.392, type=float,
                         help="The coefficient for the loss of decoder")
     parser.add_argument('-r', '--routings', default=3, type=int,
-                        help="Number of iterations used in routing algorithm. should > 0")
+                        help="Number of iterations used in routing algorithm. should be > 0")
     parser.add_argument('--save_dir', default='./result')
     parser.add_argument('-w', '--weights', default=None,
                         help="The path of the saved weights")
-    parser.add_argument('--train', default=True, type=bool,
+    parser.add_argument('--train', action='store_true',
                         help="Train/retrain the loaded model?")
     parser.add_argument('--type', default=None, type=int,
                         help="Tumor type to manipulate")
