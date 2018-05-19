@@ -567,11 +567,11 @@ def main():
         X_train = X_train[:args.sub]
         y_train = y_train[:args.sub]
 
-    print("Training on %d images, testing on %d images with %d holdout" % (len(y_train), len(y_test), len(y_hold)))
     if args.train:
+        print("Training on %d images, testing on %d images with %d holdout" % (len(y_train), len(y_test), len(y_hold)))
         train_model(model, X_train, X_test, y_train, y_test, args)
     test_model(eval_model, X_test, y_test, X_hold, y_hold, test_recon, args)
-    if args.type:
+    if args.type in [0,1,2]:
         manipulate_latent(manipulate_model, (np.concatenate([X_test, X_hold]), np.concatenate([y_test, y_hold])), args)
 
 
