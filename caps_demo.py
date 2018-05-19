@@ -460,7 +460,7 @@ def params():
     parser.add_argument('--save_dir', default='./result')
     parser.add_argument('-w', '--weights', default=None,
                         help="The path of the saved weights")
-    parser.add_argument('-train', default=True,
+    parser.add_argument('-train', default=True, type=bool,
                         help="Train/retrain the loaded model?")
     parser.add_argument('--type', default=None, type=int,
                         help="Tumor type to manipulate")
