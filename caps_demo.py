@@ -494,9 +494,9 @@ def get_models(args, shape):
                        metrics={'capsnet': 'accuracy'})'''
 
     if args.weights:
-        model.load_weights('weights/' + args.weights)
-        eval_model.load_weights('weights/' + args.weights)
-        manipulate_model.load_weights('weights/' + args.weights)
+        model.load_weights(args.save_dir + 'weights/' + args.weights)
+        eval_model.load_weights(args.save_dir + 'weights/' + args.weights)
+        manipulate_model.load_weights(args.save_dir + 'weights/' + args.weights)
 
     return model, eval_model, manipulate_model
 
@@ -505,7 +505,7 @@ def train_model(model, X_train, X_test, y_train, y_test, args):
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     gb = GetBest(monitor='val_capsnet_acc', verbose=0, mode='max')
     lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
-    checkpoint = callbacks.ModelCheckpoint(args.save_dir + '/weights-{epoch:02d}.h5', monitor='val_capsnet_acc',
+    checkpoint = callbacks.ModelCheckpoint(args.save_dir + '/weights/weights-{epoch:02d}.h5', monitor='val_capsnet_acc',
                                            save_best_only=True, save_weights_only=True, verbose=1)
 
     model.fit([X_train, y_train], [y_train, X_train], batch_size=args.batch_size, epochs=args.epochs,
