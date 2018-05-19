@@ -460,7 +460,7 @@ def params():
     parser.add_argument('--save_dir', default='./result')
     parser.add_argument('-w', '--weights', default=None,
                         help="The path of the saved weights")
-    parser.add_argument('-train', default=True, type=bool,
+    parser.add_argument('--train', default=True, type=bool,
                         help="Train/retrain the loaded model?")
     parser.add_argument('--type', default=None, type=int,
                         help="Tumor type to manipulate")
@@ -494,9 +494,9 @@ def get_models(args, shape):
                        metrics={'capsnet': 'accuracy'})'''
 
     if args.weights:
-        model.load_weights(args.save_dir + 'weights/' + args.weights)
-        eval_model.load_weights(args.save_dir + 'weights/' + args.weights)
-        manipulate_model.load_weights(args.save_dir + 'weights/' + args.weights)
+        model.load_weights(args.save_dir + '/weights/' + args.weights)
+        eval_model.load_weights(args.save_dir + '/weights/' + args.weights)
+        manipulate_model.load_weights(args.save_dir + '/weights/' + args.weights)
 
     return model, eval_model, manipulate_model
 
