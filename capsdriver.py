@@ -147,7 +147,7 @@ def load_control():
     #fn = '/Users/ngetty/Downloads/control/ABIDE/'
     ids = []
     X = []
-    dim = 64
+    dim = 32
     for root, dirnames, filenames in os.walk(fn):
         for filename in fnmatch.filter(filenames, '*.nii'):
             fn = os.path.join(root, filename)
@@ -219,13 +219,15 @@ def cnn_model():
 
 
 def cnn_model3D():
-    img_input = Input(shape=(64, 64, 64, 1), name='input')
+    dim = 32
+    w = 3
+    img_input = Input(shape=(dim, dim, dim, 1), name='input')
 
     # --- block 1 ---
-    x = Conv3D(64, (5,5,5), activation='relu', padding='same', name='block1_conv1')(img_input)
+    x = Conv3D(dim, (w,w,w), activation='relu', padding='same', name='block1_conv1')(img_input)
     x = BatchNormalization()(x)
     x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block1_pool')(x)
-    x = Conv3D(64, (5,5,5), activation='relu', padding='same', name='block2_conv1')(x)
+    x = Conv3D(dim, (w,w,w), activation='relu', padding='same', name='block2_conv1')(x)
     x = BatchNormalization()(x)
     x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
