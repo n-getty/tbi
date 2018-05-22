@@ -229,10 +229,10 @@ def cnn_model3D():
     x = BatchNormalization()(x)
     x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
-    x = Dense(800, activation='relu', name='fc_1')(x)
+    x = Dense(400, activation='relu', name='fc_1')(x)
     #x = BatchNormalization()(x)
     #x = Dropout(0.5)(x)
-    x = Dense(800, activation='relu', name='fc_2')(x)
+    x = Dense(200, activation='relu', name='fc_2')(x)
     #x = BatchNormalization()(x)
     #x = Dropout(0.8)(x)
     pred = Dense(1, activation='linear', name='pred')(x)
@@ -333,7 +333,7 @@ def main():
                 validation_data=(x_test, [y_test, sex_test]),
                 class_weight=['auto', 'auto'])
 
-            tbi_pred = c_model.predict(x_tbi, batch_size=10)
+
             test_pred = c_model.predict(x_test, batch_size=10)
             hold_pred = c_model.predict(x_hold, batch_size=10)
 
@@ -347,15 +347,21 @@ def main():
 
             print "Base Test:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
             print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)] *len(y_hold))
-            print "Base TBI:", mean_absolute_error(y_tbi, [np.mean(y_tbi)] * len(y_tbi))
+
+            if tbi:
+                tbi_pred = c_model.predict(x_tbi, batch_size=10)
+                print "Base TBI:", mean_absolute_error(y_tbi, [np.mean(y_tbi)] * len(y_tbi))
+                print "TBI MAE:", mean_absolute_error(y_tbi, tbi_pred[0])
+                print "TBI R2:", r2_score(y_tbi, tbi_pred)
+
 
             print "Test MAE:", mean_absolute_error(y_test, test_pred[0])
             print "Hold MAE:", mean_absolute_error(y_hold, hold_pred[0])
-            print "TBI MAE:", mean_absolute_error(y_tbi, tbi_pred[0])
+
 
             print "Test R2:", r2_score(y_test, test_pred)
             print "Hold R2:", r2_score(y_hold, hold_pred)
-            print "TBI R2:", r2_score(y_tbi, tbi_pred)
+
 
             print'Test acc:', np.sum(np.argmax(test_pred[1], 1) == np.argmax(sex_test, 1)) / float(y_test.shape[0])
             print'Hold acc:', np.sum(np.argmax(hold_pred[1], 1) == np.argmax(sex_hold, 1)) / float(y_hold.shape[0])
