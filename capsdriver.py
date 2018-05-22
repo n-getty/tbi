@@ -162,10 +162,12 @@ def load_control():
     infile = 'data/control.csv'
     df = pd.read_csv(infile, usecols=['Subject', 'Age', 'Sex', 'Description'])
     df = df.loc[df.Description == 'MP-RAGE']
+
     age_dict = dict(zip(df.Subject, df.Age))
     sex_dict = dict(zip(df.Subject, pd.get_dummies(df.Sex)))
-    sex_y = np.array([sex_dict[id] for id in ids])
+
     y = np.array([age_dict[id] for id in ids])
+    sex_y = np.array([sex_dict[id] for id in ids])
 
     mean = np.mean(y)
     rnge = max(y) - min(y)
