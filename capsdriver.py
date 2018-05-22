@@ -240,7 +240,7 @@ def cnn_model3D():
     model = Model(img_input, [pred, sex_pred], name='mri_regressor')
     ls = 'mean_absolute_error'
     #ls = 'mean_squared_error'
-    model.compile(loss=ls, optimizer='adam', metrics=['mae'])
+    model.compile(loss=[ls, 'categorical_crossentropy'], optimizer='adam', metrics={'pred': 'mae', 'sex_pred': 'accuracy'})
     model.summary()
     return model
 
