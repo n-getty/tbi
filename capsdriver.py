@@ -331,7 +331,7 @@ def main():
                 verbose=args.verb,
                 callbacks=[lr_decay, gb, lr_red],
                 validation_data=(x_test, [y_test, sex_test]),
-                class_weight='auto')
+                class_weight=['auto', 'auto'])
 
             tbi_pred = c_model.predict(x_tbi, batch_size=10)
             test_pred = c_model.predict(x_test, batch_size=10)
