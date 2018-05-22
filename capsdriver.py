@@ -315,13 +315,14 @@ def main():
                       metrics={'reg': 'mae'})
 
     if args.cnn:
-        c_model.fit(x_train, y_train,
-                  batch_size=args.batch_size,
-                  epochs=args.epochs,
-                  verbose=args.verb,
-                  callbacks=[lr_decay, gb, lr_red],
-                  validation_data=(x_test, y_test),
-                  class_weight='auto')
+        if d ==2:
+            c_model.fit(x_train, y_train,
+                      batch_size=args.batch_size,
+                      epochs=args.epochs,
+                      verbose=args.verb,
+                      callbacks=[lr_decay, gb, lr_red],
+                      validation_data=(x_test, y_test),
+                      class_weight='auto')
 
         if d ==3:
             c_model.fit(x_train, [y_train, sex_train],
