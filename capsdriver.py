@@ -164,7 +164,7 @@ def load_control():
     df = df.loc[df.Description == 'MP-RAGE']
 
     age_dict = dict(zip(df.Subject, df.Age))
-    sex_dict = dict(zip(df.Subject, pd.get_dummies(df.Sex)))
+    sex_dict = dict(zip(df.Subject, np.array(pd.get_dummies(df.Sex))))
 
     y = np.array([age_dict[id] for id in ids])
     sex_y = np.array([sex_dict[id] for id in ids])
