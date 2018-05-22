@@ -160,10 +160,11 @@ def load_control():
     X = np.stack(X).reshape(len(X), dim, dim, dim, 1)
 
     infile = 'data/control.csv'
-    df = pd.read_csv(infile, usecols=['Subject', 'Age', 'Description'])
+    df = pd.read_csv(infile, usecols=['Subject', 'Age', 'Sex', 'Description'])
     df = df.loc[df.Description == 'MP-RAGE']
     age_dict = dict(zip(df.Subject, df.Age))
-
+    sex_dict = dict(zip(df.Subject, pd.get_dummies(df.Sex)))
+    sex_y = np.array([sex_dict[id] for id in ids])
     y = np.array([age_dict[id] for id in ids])
 
     mean = np.mean(y)
@@ -180,15 +181,15 @@ def load_control():
     #y = (y - mean) / rnge
     cat_y = np.array(cat_y)
     tts_split = train_test_split(
-        X, y, cat_y, test_size=0.2, random_state=0
+        X, y, cat_y, sex_y, test_size=0.2, random_state=0
     )
 
-    x_train, x_test, y_train, y_test, bin_train, bin_test = tts_split
+    x_train, x_test, y_train, y_test, bin_train, bin_test, sex_train, sex_test = tts_split
 
     x_train = x_train.reshape(x_train.shape[0], dim, dim, dim, 1).astype('float32')# / 255
     x_test = x_test.reshape(x_test.shape[0], dim, dim, dim, 1).astype('float32') #/ 255
 
-    return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge, bin_train, bin_test[:68], bin_test[68:]
+    return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge, bin_train, bin_test[:68], bin_test[68:], sex_train, sex_test[:68], sex_test[68:]
 
 
 def cnn_model():
@@ -233,7 +234,8 @@ def cnn_model3D():
     #x = BatchNormalization()(x)
     #x = Dropout(0.8)(x)
     pred = Dense(1, activation='linear', name='pred')(x)
-    model = Model(img_input, pred, name='mri_regressor')
+    sex_pred = Dense(2, activation='softmax', name='sex_pred')(x)
+    model = Model(img_input, [pred, sex_pred], name='mri_regressor')
     ls = 'mean_absolute_error'
     #ls = 'mean_squared_error'
     model.compile(loss=ls, optimizer='adam', metrics=['mae'])
@@ -262,7 +264,7 @@ def main():
     if args.data == 'control':
         print "loading control"
         classes = 10
-        x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold = load_control()
+        x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control()
         tbi = False
         if tbi:
             x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
@@ -320,6 +322,14 @@ def main():
                   class_weight='auto')
 
         if d ==3:
+            c_model.fit(x_train, [y_train, sex_train],
+                batch_size=args.batch_size,
+                epochs=args.epochs,
+                verbose=args.verb,
+                callbacks=[lr_decay, gb, lr_red],
+                validation_data=(x_test, [y_test, sex_test]),
+                class_weight='auto')
+
             tbi_pred = c_model.predict(x_tbi, batch_size=10)
             test_pred = c_model.predict(x_test, batch_size=10)
             hold_pred = c_model.predict(x_hold, batch_size=10)
@@ -336,13 +346,16 @@ def main():
             print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)] *len(y_hold))
             print "Base TBI:", mean_absolute_error(y_tbi, [np.mean(y_tbi)] * len(y_tbi))
 
-            print "Test MAE:", mean_absolute_error(y_test, test_pred)
-            print "Hold MAE:", mean_absolute_error(y_hold, hold_pred)
-            print "TBI MAE:", mean_absolute_error(y_tbi, tbi_pred)
+            print "Test MAE:", mean_absolute_error(y_test, test_pred[0])
+            print "Hold MAE:", mean_absolute_error(y_hold, hold_pred[0])
+            print "TBI MAE:", mean_absolute_error(y_tbi, tbi_pred[0])
 
             print "Test R2:", r2_score(y_test, test_pred)
             print "Hold R2:", r2_score(y_hold, hold_pred)
             print "TBI R2:", r2_score(y_tbi, tbi_pred)
+
+            print'Test acc:', np.sum(np.argmax(test_pred[1], 1) == np.argmax(sex_test, 1)) / float(y_test.shape[0])
+            print'Hold acc:', np.sum(np.argmax(hold_pred[1], 1) == np.argmax(sex_hold, 1)) / float(y_hold.shape[0])
 
             print pd.DataFrame(zip(tbi_pred, y_tbi), columns=['y_pred', 'y_true'])
             print pd.DataFrame(zip(test_pred, y_test), columns=['y_pred', 'y_true'])

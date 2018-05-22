@@ -93,7 +93,7 @@ def margin_loss(y_true, y_pred):
 def manipulate_latent(model, data, args):
     print('-' * 30 + 'Begin: manipulate' + '-' * 30)
     x_test, y_test = data
-    index = np.argmax(y_test, 1) == args.digit
+    index = np.argmax(y_test, 1) == args.type
     number = np.random.randint(low=0, high=sum(index) - 1)
     x, y = x_test[index][number], y_test[index][number]
     x, y = np.expand_dims(x, 0), np.expand_dims(y, 0)
@@ -110,6 +110,6 @@ def manipulate_latent(model, data, args):
 
     img = combine_images(x_recons, height=16)
     image = img * 255
-    Image.fromarray(image.astype(np.uint8)).save(args.save_dir + '/manipulate-%d.png' % args.digit)
-    print('manipulated result saved to %s/manipulate-%d.png' % (args.save_dir, args.digit))
+    Image.fromarray(image.astype(np.uint8)).save(args.save_dir + '/manipulate-%d.png' % args.type)
+    print('manipulated result saved to %s/manipulate-%d.png' % (args.save_dir, args.type))
     print('-' * 30 + 'End: manipulate' + '-' * 30)
