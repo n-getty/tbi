@@ -335,7 +335,6 @@ def main():
                 validation_data=(x_test, [y_test, sex_test]),
                 class_weight=['auto', 'auto'])
 
-
             test_pred = c_model.predict(x_test, batch_size=10)
             hold_pred = c_model.predict(x_hold, batch_size=10)
 
@@ -350,14 +349,11 @@ def main():
             print "Base Test:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
             print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)] * len(y_hold))
 
-            print "Base Test Acc:", pd.value_counts(y_test)[0] / len(y_test)
-            print "Base Hold Acc:", pd.value_counts(y_hold)[0] / len(y_hold)
-
             if tbi:
                 tbi_pred = c_model.predict(x_tbi, batch_size=10)
                 print "Base TBI:", mean_absolute_error(y_tbi, [np.mean(y_tbi)] * len(y_tbi))
                 print "TBI MAE:", mean_absolute_error(y_tbi, tbi_pred[0])
-                print "TBI R2:", r2_score(y_tbi, tbi_pred)
+                print "TBI R2:", r2_score(y_tbi, tbi_pred[0])
                 #print pd.DataFrame(zip(tbi_pred, y_tbi), columns=['y_pred', 'y_true'])
 
             print "Test MAE:", mean_absolute_error(y_test, test_pred[0])
@@ -371,6 +367,9 @@ def main():
             print'Test acc:', np.sum(np.argmax(test_pred[1], 1) == np.argmax(sex_test, 1)) / float(y_test.shape[0])
             print'Hold acc:', np.sum(np.argmax(hold_pred[1], 1) == np.argmax(sex_hold, 1)) / float(y_hold.shape[0])
 
+            print "Base Test Acc:", pd.value_counts(sex_test)[0] / len(y_test)
+            print "Base Hold Acc:", pd.value_counts(sex_hold)[0] / len(y_hold)
+            
             #print pd.DataFrame(zip(test_pred[:,1], y_test), columns=['y_pred', 'y_true'])
         else:
             print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
