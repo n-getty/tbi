@@ -272,7 +272,7 @@ def main():
         tbi = False
         if tbi:
             x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
-        m = 'val_mean_absolute_error'
+        m = 'val_pred_mean_absolute_error'
         mo = 'min'
         #y_tbi = (y_tbi - mean) / rnge
         print "control loaded"
@@ -359,17 +359,18 @@ def main():
             print "Test MAE:", mean_absolute_error(y_test, test_pred[0])
             print "Hold MAE:", mean_absolute_error(y_hold, hold_pred[0])
 
-
             #print "Test R2:", r2_score(y_test, test_pred)
             #print "Hold R2:", r2_score(y_hold, hold_pred)
-
 
             print'Test acc:', np.sum(np.argmax(test_pred[1], 1) == np.argmax(sex_test, 1)) / float(y_test.shape[0])
             print'Hold acc:', np.sum(np.argmax(hold_pred[1], 1) == np.argmax(sex_hold, 1)) / float(y_hold.shape[0])
 
-            print "Base Test Acc:", pd.value_counts(sex_test)[0] / len(y_test)
-            print "Base Hold Acc:", pd.value_counts(sex_hold)[0] / len(y_hold)
-            
+            print "Base Test Acc:", np.sum(np.argmax(sex_test) == 1) / len(y_test)
+            print "Base Hold Acc:", np.sum(np.argmax(sex_hold) == 1) / len(y_hold)
+
+            print test_pred[0]
+            print test_pred[1]
+
             #print pd.DataFrame(zip(test_pred[:,1], y_test), columns=['y_pred', 'y_true'])
         else:
             print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
