@@ -286,7 +286,7 @@ def cnn_model_age_sex(d=3):
     c_1_bch = Dense(256, activation='relu', name='c1_fc2')(c_1_bch)
     c_1_bch = BatchNormalization()(c_1_bch)
     c_1_bch = Dropout(0.5)(c_1_bch)
-    sex_pred = Dense(2, activation='softmax', name='c1_predictions_cifar10')(c_1_bch)
+    sex_pred = Dense(2, activation='softmax', name='sex_pred')(c_1_bch)
 
     # --- block 3 ---
     x = conv(256, fil, activation='relu', padding='same', name='block3_conv1')(x)
@@ -305,7 +305,7 @@ def cnn_model_age_sex(d=3):
     c_2_bch = Dense(1024, activation='relu', name='c2_fc2')(c_2_bch)
     c_2_bch = BatchNormalization()(c_2_bch)
     c_2_bch = Dropout(0.5)(c_2_bch)
-    pred = Dense(1, activation='linear', name='c2_predictions_cifar100')(c_2_bch)
+    pred = Dense(1, activation='linear', name='pred')(c_2_bch)
 
     model = Model(img_input, [pred, sex_pred], name='mri_regressor')
     ls = 'mean_absolute_error'
