@@ -319,7 +319,8 @@ def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, s
     print'Test acc:', np.sum(np.argmax(test_pred[1], 1) == np.argmax(sex_test, 1)) / float(y_test.shape[0])
     print'Hold acc:', np.sum(np.argmax(hold_pred[1], 1) == np.argmax(sex_hold, 1)) / float(y_hold.shape[0])
 
-    print "Base Train Acc:", np.sum(np.argmax(sex_train) == 0) / float(len(y_test))
+    print sex_test
+    print "Base Train Acc:", np.sum(np.argmax(sex_train) == 0) / float(len(y_train))
     print "Base Test Acc:", np.sum(np.argmax(sex_test) == 0) / float(len(y_test))
     print "Base Hold Acc:", np.sum(np.argmax(sex_hold) == 0) / float(len(y_hold))
 
