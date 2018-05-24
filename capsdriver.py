@@ -441,7 +441,7 @@ def main():
                       loss_weights=[1., args.lam_recon],
                       metrics={'capsnet': 'accuracy'})
 
-        eval_model.compile(optimizer=optimizers.Adam(lr=args.lr),
+        '''eval_model.compile(optimizer=optimizers.Adam(lr=args.lr),
                       loss=[capsnet.margin_loss, 'mse'],
                       loss_weights=[1., args.lam_recon],
                       metrics={'capsnet': 'accuracy'})
@@ -449,7 +449,7 @@ def main():
         reg_model.compile(optimizer=optimizers.Adam(lr=args.lr),
                       loss=['mse', 'mae'],
                       loss_weights=[args.lam_recon, 1.],
-                      metrics={'reg': 'mae'})
+                      metrics={'reg': 'mae'})'''
 
         calls = [lr_decay, lr_red, gb]
         caps_sex_pred(model, x_train, sex_train, x_test, sex_test, x_hold, sex_hold, args, calls)

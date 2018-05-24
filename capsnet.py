@@ -69,7 +69,7 @@ def CapsNet(input_shape, n_class, routings, d):
     reg_model = None
     if reg:
         reg_model = models.Model([x, y], [reg_pred, decoder(digitcaps)])
-        
+
     #reg_eval = models.Model(x, [reg_pred, decoder(masked)])
 
     # manipulate model
