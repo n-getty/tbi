@@ -326,12 +326,12 @@ def unnorm(y, mean, rnge):
 
 
 def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold, args, calls):
-    model.fit(x_train, [y_train, sex_train],
+    model.fit(x_train, [sex_train, x_train],
                 batch_size=args.batch_size,
                 epochs=args.epochs,
                 verbose=args.verb,
                 callbacks=calls,
-                validation_data=(x_test, [y_test, sex_test]))
+                validation_data=(x_test, [sex_test, x_test]))
 
     test_pred = model.predict(x_test, batch_size=10)
     hold_pred = model.predict(x_hold, batch_size=10)
