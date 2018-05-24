@@ -450,7 +450,7 @@ def main():
                       loss_weights=[args.lam_recon, 1.],
                       metrics={'reg': 'mae'})'''
 
-        calls = [lr_decay, lr_red, gb]
+        calls = [lr_decay, gb]
         caps_sex_pred(model, x_train, sex_train, x_test, sex_test, x_hold, sex_hold, args, calls)
 
     '''if args.cnn:
