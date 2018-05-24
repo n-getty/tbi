@@ -161,7 +161,7 @@ def load_control(d=3):
                 img_data = resize(img_data[:, :, 80], (dim, dim))
             X.append(img_data)
 
-    if dim == 3:
+    if d == 3:
         X = np.stack(X).reshape(len(X), dim, dim, dim, 1)
     else:
         X = np.stack(X).reshape(len(X), dim, dim, 1)
