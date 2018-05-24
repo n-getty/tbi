@@ -199,8 +199,8 @@ def load_control(d=3, dim=64):
         x_train = x_train.reshape(x_train.shape[0], dim, dim, dim, 1).astype('float16')# / 255
         x_test = x_test.reshape(x_test.shape[0], dim, dim, dim, 1).astype('float16') #/ 255
     else:
-        x_train = x_train.reshape(x_train.shape[0], dim, dim, 1).astype('float32')  # / 255
-        x_test = x_test.reshape(x_test.shape[0], dim, dim, 1).astype('float32')  # / 255
+        x_train = x_train.reshape(x_train.shape[0], dim, dim, 1).astype('float64')  # / 255
+        x_test = x_test.reshape(x_test.shape[0], dim, dim, 1).astype('float64')  # / 255
 
     return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge, bin_train, bin_test[:68], bin_test[68:], sex_train, sex_test[:68], sex_test[68:]
 
