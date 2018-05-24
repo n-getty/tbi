@@ -260,7 +260,8 @@ def cnn_model_age_sex(d=3):
     x = Dense(800, activation='relu', name='fc_2')(x)
     x = BatchNormalization()(x)
     #x = Dropout(0.8)(x)
-    pred = Dense(1, activation='linear', name='pred')(x)'''
+    pred = Dense(1, activation='linear', name='pred')(x)
+    sex_pred = Dense(2, activation='softmax', name='sex_pred')(x)'''
 
 
     # --- block 1 ---
@@ -306,7 +307,6 @@ def cnn_model_age_sex(d=3):
     c_2_bch = Dropout(0.5)(c_2_bch)
     pred = Dense(1, activation='linear', name='c2_predictions_cifar100')(c_2_bch)
 
-    sex_pred = Dense(2, activation='softmax', name='sex_pred')(x)
     model = Model(img_input, [pred, sex_pred], name='mri_regressor')
     ls = 'mean_absolute_error'
     # ls = 'mean_squared_error'
