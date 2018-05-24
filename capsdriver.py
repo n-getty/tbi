@@ -29,6 +29,7 @@ def params():
     parser.add_argument('--epochs', default=30, type=int)
     parser.add_argument('--verb', default=1, type=int)
     parser.add_argument('--d', default=3, type=int)
+    parser.add_argument('--dim', default=64, type=int)
     parser.add_argument('--sub', default=0, type=int)
     parser.add_argument('--batch_size', default=100, type=int)
     parser.add_argument('--lr', default=0.001, type=float,
@@ -143,12 +144,11 @@ def load_tbi():
     return X, y, mean, rnge
 
 
-def load_control(d=3):
+def load_control(d=3, dim=64):
     fn = '/vol/ml/ngetty/control/ABIDE/'
     #fn = '/Users/ngetty/Downloads/control/ABIDE/'
     ids = []
     X = []
-    dim = 64
     for root, dirnames, filenames in os.walk(fn):
         for filename in fnmatch.filter(filenames, '*.nii'):
             fn = os.path.join(root, filename)
@@ -403,7 +403,7 @@ def main():
     if args.data == 'control':
         print "loading control"
         classes = 10
-        x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control(d)
+        x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control(d, args.dim)
         tbi = False
         if tbi:
             x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
