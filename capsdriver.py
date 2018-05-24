@@ -404,8 +404,6 @@ def main():
         print "loading control"
         classes = 10
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control(d)
-        print sex_train
-        exit(0)
         tbi = False
         if tbi:
             x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
@@ -418,12 +416,12 @@ def main():
         x_train = x_train[:args.sub]
         y_train = y_train[:args.sub]
 
-    #print "Train freq:", np.array(Counter(np.argmax(y_train, axis=1)).values()).astype('float32') / len(y_train)
-    #print "Test freq:", np.array(Counter(np.argmax(y_test, axis=1)).values()).astype('float32') / len(y_test)
-    #print "Hold freq:", np.array(Counter(np.argmax(y_hold, axis=1)).values()).astype('float32') / len(y_hold)
+    # print "Train freq:", np.array(Counter(np.argmax(y_train, axis=1)).values()).astype('float32') / len(y_train)
+    # print "Test freq:", np.array(Counter(np.argmax(y_test, axis=1)).values()).astype('float32') / len(y_test)
+    # print "Hold freq:", np.array(Counter(np.argmax(y_hold, axis=1)).values()).astype('float32') / len(y_hold)
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
-    es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
+    # es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
     lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
     gb = GetBest(monitor=m, verbose=0, mode=mo)
 
@@ -466,10 +464,9 @@ def main():
 
         print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]'''
 
-    if args.caps:
-        if d == 3:
-            reg_model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
-                      validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, gb], verbose=args.verb)
+
+        #reg_model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
+        #          validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, gb], verbose=args.verb)
 
 
 if __name__ == '__main__':
