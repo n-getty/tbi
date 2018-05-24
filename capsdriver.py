@@ -230,9 +230,8 @@ def cnn_model():
 
 
 def cnn_model_age_sex(d=3):
-    dim = 32
+    dim = 64
     w = 3
-
 
     if d == 3:
         conv = Conv3D
