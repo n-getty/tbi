@@ -195,7 +195,7 @@ def load_control(d=3):
 
     x_train, x_test, y_train, y_test, bin_train, bin_test, sex_train, sex_test = tts_split
 
-    if dim == 3:
+    if d == 3:
         x_train = x_train.reshape(x_train.shape[0], dim, dim, dim, 1).astype('float16')# / 255
         x_test = x_test.reshape(x_test.shape[0], dim, dim, dim, 1).astype('float16') #/ 255
     else:
