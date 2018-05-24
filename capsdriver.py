@@ -190,7 +190,7 @@ def load_control(d=3):
     #y = (y - mean) / rnge
     cat_y = np.array(cat_y)
     tts_split = train_test_split(
-        X, y, cat_y, sex_y, test_size=0.2, random_state=0
+        X, y, cat_y, sex_y, test_size=0.2, random_state=0, stratify = sex_y
     )
 
     x_train, x_test, y_train, y_test, bin_train, bin_test, sex_train, sex_test = tts_split
