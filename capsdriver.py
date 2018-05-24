@@ -232,7 +232,7 @@ def cnn_model():
 def cnn_model_age_sex(d=3):
     dim = 32
     w = 3
-    img_input = Input(shape=(dim, dim, dim, 1), name='input')
+
 
     if d == 3:
         conv = Conv3D
@@ -244,6 +244,8 @@ def cnn_model_age_sex(d=3):
         pool = MaxPooling2D
         fil = (w, w)
         strides = (2, 2)
+
+    img_input = Input(shape=fil + (1), name='input')
 
     # --- block 1 ---
     x = conv(dim, fil, activation='relu', padding='same', name='block1_conv1')(img_input)
