@@ -247,7 +247,7 @@ def cnn_model_age_sex(d=3):
     img_input = Input(shape=(dim,)*d + (1,), name='input')
 
     # --- block 1 ---
-    x = conv(dim, fil, activation='relu', padding='same', name='block1_conv1')(img_input)
+    '''x = conv(dim, fil, activation='relu', padding='same', name='block1_conv1')(img_input)
     x = BatchNormalization()(x)
     x = pool(strides, strides=strides, name='block1_pool')(x)
     x = conv(dim, fil, activation='relu', padding='same', name='block2_conv1')(x)
@@ -255,17 +255,64 @@ def cnn_model_age_sex(d=3):
     x = pool(strides, strides=strides, name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
     x = Dense(800, activation='relu', name='fc_1')(x)
-    #x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     #x = Dropout(0.5)(x)
     x = Dense(800, activation='relu', name='fc_2')(x)
-    #x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     #x = Dropout(0.8)(x)
-    pred = Dense(1, activation='linear', name='pred')(x)
+    pred = Dense(1, activation='linear', name='pred')(x)'''
+
+
+    # --- block 1 ---
+    x = conv(64, fil, activation='relu', padding='same', name='block1_conv1')(img_input)
+    x = BatchNormalization()(x)
+    x = conv(64, fil, activation='relu', padding='same', name='block1_conv2')(x)
+    x = BatchNormalization()(x)
+    x = pool(strides, strides=strides, name='block1_pool')(x)
+
+    # --- block 2 ---
+    x = conv(128, fil, activation='relu', padding='same', name='block2_conv1')(x)
+    x = BatchNormalization()(x)
+    x = conv(128, fil, activation='relu', padding='same', name='block2_conv2')(x)
+    x = BatchNormalization()(x)
+    x = pool(strides, strides=strides, name='block2_pool')(x)
+
+    # --- coarse 1 branch ---
+    c_1_bch = Flatten(name='c1_flatten')(x)
+    c_1_bch = Dense(256, activation='relu', name='c1_fc_cifar10_1')(c_1_bch)
+    c_1_bch = BatchNormalization()(c_1_bch)
+    c_1_bch = Dropout(0.5)(c_1_bch)
+    c_1_bch = Dense(256, activation='relu', name='c1_fc2')(c_1_bch)
+    c_1_bch = BatchNormalization()(c_1_bch)
+    c_1_bch = Dropout(0.5)(c_1_bch)
+    sex_pred = Dense(2, activation='softmax', name='c1_predictions_cifar10')(c_1_bch)
+
+    # --- block 3 ---
+    x = conv(256, fil, activation='relu', padding='same', name='block3_conv1')(x)
+    x = BatchNormalization()(x)
+    x = conv(256, fil, activation='relu', padding='same', name='block3_conv2')(x)
+    x = BatchNormalization()(x)
+    x = conv(256, fil, activation='relu', padding='same', name='block3_conv3')(x)
+    x = BatchNormalization()(x)
+    x = pool(strides, strides=strides, name='block3_pool')(x)
+
+    # --- coarse 2 branch ---
+    c_2_bch = Flatten(name='c2_flatten')(x)
+    c_2_bch = Dense(1024, activation='relu', name='c2_fc_cifar100_1')(c_2_bch)
+    c_2_bch = BatchNormalization()(c_2_bch)
+    c_2_bch = Dropout(0.5)(c_2_bch)
+    c_2_bch = Dense(1024, activation='relu', name='c2_fc2')(c_2_bch)
+    c_2_bch = BatchNormalization()(c_2_bch)
+    c_2_bch = Dropout(0.5)(c_2_bch)
+    pred = Dense(1, activation='linear', name='c2_predictions_cifar100')(c_2_bch)
+
     sex_pred = Dense(2, activation='softmax', name='sex_pred')(x)
     model = Model(img_input, [pred, sex_pred], name='mri_regressor')
     ls = 'mean_absolute_error'
-    #ls = 'mean_squared_error'
-    model.compile(loss=[ls, 'categorical_crossentropy'], optimizer='adam', metrics={'pred': 'mae', 'sex_pred': 'accuracy'})
+    # ls = 'mean_squared_error'
+    model.compile(loss=[ls, 'categorical_crossentropy'], optimizer='adam',
+                  metrics={'pred': 'mae', 'sex_pred': 'accuracy'})
+
     model.summary()
     return model
 
