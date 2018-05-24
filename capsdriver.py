@@ -199,8 +199,8 @@ def load_control(d=3):
         x_train = x_train.reshape(x_train.shape[0], dim, dim, dim, 1).astype('float16')# / 255
         x_test = x_test.reshape(x_test.shape[0], dim, dim, dim, 1).astype('float16') #/ 255
     else:
-        x_train = x_train.reshape(x_train.shape[0], dim, dim, 1).astype('float16')  # / 255
-        x_test = x_test.reshape(x_test.shape[0], dim, dim, 1).astype('float16')  # / 255
+        x_train = x_train.reshape(x_train.shape[0], dim, dim, 1).astype('float32')  # / 255
+        x_test = x_test.reshape(x_test.shape[0], dim, dim, 1).astype('float32')  # / 255
 
     return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge, bin_train, bin_test[:68], bin_test[68:], sex_train, sex_test[:68], sex_test[68:]
 
@@ -379,7 +379,6 @@ def caps_sex_pred(model, x_train, y_train, x_test, y_test, x_hold, y_hold, args,
     model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
               validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=calls, verbose=args.verb)
 
-    w = model.get_weights()
     print model.evaluate([x_test, y_test], [y_test, x_test], verbose=0)[3], \
     model.evaluate([x_hold, y_hold], [y_hold, x_hold], verbose=0)[3]
 
