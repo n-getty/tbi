@@ -231,7 +231,7 @@ def cnn_model():
 
 def cnn_model_age_sex(d=3):
     dim = 64
-    w = 3
+    w = 5
 
     if d == 3:
         conv = Conv3D
@@ -254,10 +254,10 @@ def cnn_model_age_sex(d=3):
     x = BatchNormalization()(x)
     x = pool(strides, strides=strides, name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
-    x = Dense(400, activation='relu', name='fc_1')(x)
+    x = Dense(800, activation='relu', name='fc_1')(x)
     #x = BatchNormalization()(x)
     #x = Dropout(0.5)(x)
-    x = Dense(200, activation='relu', name='fc_2')(x)
+    x = Dense(800, activation='relu', name='fc_2')(x)
     #x = BatchNormalization()(x)
     #x = Dropout(0.8)(x)
     pred = Dense(1, activation='linear', name='pred')(x)
@@ -319,7 +319,6 @@ def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, s
     print'Test acc:', np.sum(np.argmax(test_pred[1], 1) == np.argmax(sex_test, 1)) / float(y_test.shape[0])
     print'Hold acc:', np.sum(np.argmax(hold_pred[1], 1) == np.argmax(sex_hold, 1)) / float(y_hold.shape[0])
 
-    print sex_test
     print "Base Train Acc:", np.sum(np.argmax(sex_train, 1) == 1) / float(len(y_train))
     print "Base Test Acc:", np.sum(np.argmax(sex_test, 1) == 1) / float(len(y_test))
     print "Base Hold Acc:", np.sum(np.argmax(sex_hold, 1) == 1) / float(len(y_hold))
