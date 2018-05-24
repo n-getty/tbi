@@ -190,7 +190,7 @@ def load_control(d=3):
     #y = (y - mean) / rnge
     cat_y = np.array(cat_y)
     tts_split = train_test_split(
-        X, y, cat_y, sex_y, test_size=0.2, random_state=0, stratify = sex_y
+        X, y, cat_y, sex_y, test_size=0.2, random_state=0, stratify=sex_y
     )
 
     x_train, x_test, y_train, y_test, bin_train, bin_test, sex_train, sex_test = tts_split
@@ -320,9 +320,9 @@ def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, s
     print'Hold acc:', np.sum(np.argmax(hold_pred[1], 1) == np.argmax(sex_hold, 1)) / float(y_hold.shape[0])
 
     print sex_test
-    print "Base Train Acc:", np.sum(np.argmax(sex_train) == 0) / float(len(y_train))
-    print "Base Test Acc:", np.sum(np.argmax(sex_test) == 0) / float(len(y_test))
-    print "Base Hold Acc:", np.sum(np.argmax(sex_hold) == 0) / float(len(y_hold))
+    print "Base Train Acc:", np.sum(np.argmax(sex_train, 1) == 1) / float(len(y_train))
+    print "Base Test Acc:", np.sum(np.argmax(sex_test, 1) == 1) / float(len(y_test))
+    print "Base Hold Acc:", np.sum(np.argmax(sex_hold, 1) == 1) / float(len(y_hold))
 
     # print pd.DataFrame(zip(test_pred[:,1], y_test), columns=['y_pred', 'y_true'])
 
