@@ -229,7 +229,7 @@ def cnn_model():
     return model
 
 
-def cnn_model_age_sex(d):
+def cnn_model_age_sex(d=3):
     dim = 32
     w = 3
     img_input = Input(shape=(dim, dim, dim, 1), name='input')
@@ -360,7 +360,7 @@ def main():
     gb = GetBest(monitor=m, verbose=0, mode=mo)
 
     if args.cnn:
-        model = cnn_model_age_sex()
+        model = cnn_model_age_sex(d)
         train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold,
                           args,
                           lr_decay, lr_red, gb)
