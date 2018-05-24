@@ -311,7 +311,8 @@ def cnn_model_age_sex(d=3):
     ls = 'mean_absolute_error'
     # ls = 'mean_squared_error'
     model.compile(loss=[ls, 'categorical_crossentropy'], optimizer='adam',
-                  metrics={'pred': 'mae', 'sex_pred': 'accuracy'})
+                  metrics={'pred': 'mae', 'sex_pred': 'accuracy'},
+                  loss_weights=[0.75, 0.25])
 
     model.summary()
     return model
@@ -330,8 +331,7 @@ def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, s
                 epochs=args.epochs,
                 verbose=args.verb,
                 callbacks=[lr_decay, gb, lr_red],
-                validation_data=(x_test, [y_test, sex_test]),
-                loss_weights=[.75, .25])
+                validation_data=(x_test, [y_test, sex_test]))
 
     test_pred = model.predict(x_test, batch_size=10)
     hold_pred = model.predict(x_hold, batch_size=10)
