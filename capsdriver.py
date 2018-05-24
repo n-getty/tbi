@@ -28,6 +28,7 @@ def params():
     parser = argparse.ArgumentParser(description="Capsule Network on brain tumor classification.")
     parser.add_argument('--epochs', default=30, type=int)
     parser.add_argument('--verb', default=1, type=int)
+    parser.add_argument('--d', default=3, type=int)
     parser.add_argument('--sub', default=0, type=int)
     parser.add_argument('--batch_size', default=100, type=int)
     parser.add_argument('--lr', default=0.001, type=float,
@@ -142,7 +143,7 @@ def load_tbi():
     return X, y, mean, rnge
 
 
-def load_control():
+def load_control(d=3):
     fn = '/vol/ml/ngetty/control/ABIDE/'
     #fn = '/Users/ngetty/Downloads/control/ABIDE/'
     ids = []
@@ -152,12 +153,18 @@ def load_control():
         for filename in fnmatch.filter(filenames, '*.nii'):
             fn = os.path.join(root, filename)
             img = nib.load(fn)
-            img_data = img.get_data()
             ids.append(int(filename[6:11]))
-            img_data = resize(img_data, (dim, dim, dim))
+            img_data = img.get_data()
+            if d ==3:
+                img_data = resize(img_data, (dim, dim, dim))
+            else:
+                img_data = resize(img_data[:, :, 80], (dim, dim))
             X.append(img_data)
 
-    X = np.stack(X).reshape(len(X), dim, dim, dim, 1)
+    if dim == 3:
+        X = np.stack(X).reshape(len(X), dim, dim, dim, 1)
+    else:
+        X = np.stack(X).reshape(len(X), dim, dim, 1)
 
     infile = 'data/control.csv'
     df = pd.read_csv(infile, usecols=['Subject', 'Age', 'Sex', 'Description'])
@@ -188,8 +195,12 @@ def load_control():
 
     x_train, x_test, y_train, y_test, bin_train, bin_test, sex_train, sex_test = tts_split
 
-    x_train = x_train.reshape(x_train.shape[0], dim, dim, dim, 1).astype('float32')# / 255
-    x_test = x_test.reshape(x_test.shape[0], dim, dim, dim, 1).astype('float32') #/ 255
+    if dim == 3:
+        x_train = x_train.reshape(x_train.shape[0], dim, dim, dim, 1).astype('float16')# / 255
+        x_test = x_test.reshape(x_test.shape[0], dim, dim, dim, 1).astype('float16') #/ 255
+    else:
+        x_train = x_train.reshape(x_train.shape[0], dim, dim, 1).astype('float16')  # / 255
+        x_test = x_test.reshape(x_test.shape[0], dim, dim, 1).astype('float16')  # / 255
 
     return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge, bin_train, bin_test[:68], bin_test[68:], sex_train, sex_test[:68], sex_test[68:]
 
@@ -254,12 +265,58 @@ def unnorm(y, mean, rnge):
     return y
 
 
+def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold, args, lr_decay, lr_red, gb):
+    model.fit(x_train, [y_train, sex_train],
+                batch_size=args.batch_size,
+                epochs=args.epochs,
+                verbose=args.verb,
+                callbacks=[lr_decay, gb, lr_red],
+                validation_data=(x_test, [y_test, sex_test]))
+
+    test_pred = model.predict(x_test, batch_size=10)
+    hold_pred = model.predict(x_hold, batch_size=10)
+
+    norm = 0
+    if norm:
+        tbi_pred = unnorm(tbi_pred, mean, rnge)
+        test_pred = unnorm(test_pred, mean, rnge)
+        hold_pred = unnorm(hold_pred, mean, rnge)
+
+        y_tbi = unnorm(y_tbi, mean, rnge)
+        y_test = unnorm(y_test, mean, rnge)
+        y_hold = unnorm(y_hold, mean, rnge)
+
+    print "Base Test:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
+    print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)] * len(y_hold))
+
+    tbi = 0
+
+    if tbi:
+        tbi_pred = model.predict(x_tbi, batch_size=10)
+        print "Base TBI:", mean_absolute_error(y_tbi, [np.mean(y_tbi)] * len(y_tbi))
+        print "TBI MAE:", mean_absolute_error(y_tbi, tbi_pred[0])
+        print "TBI R2:", r2_score(y_tbi, tbi_pred[0])
+        # print pd.DataFrame(zip(tbi_pred, y_tbi), columns=['y_pred', 'y_true'])
+
+    print "Test MAE:", mean_absolute_error(y_test, test_pred[0])
+    print "Hold MAE:", mean_absolute_error(y_hold, hold_pred[0])
+
+    # print "Test R2:", r2_score(y_test, test_pred)
+    # print "Hold R2:", r2_score(y_hold, hold_pred)
+
+    print'Test acc:', np.sum(np.argmax(test_pred[1], 1) == np.argmax(sex_test, 1)) / float(y_test.shape[0])
+    print'Hold acc:', np.sum(np.argmax(hold_pred[1], 1) == np.argmax(sex_hold, 1)) / float(y_hold.shape[0])
+
+    print "Base Test Acc:", np.sum(np.argmax(sex_test) == 1) / len(y_test)
+    print "Base Hold Acc:", np.sum(np.argmax(sex_hold) == 1) / len(y_hold)
+
+    # print pd.DataFrame(zip(test_pred[:,1], y_test), columns=['y_pred', 'y_true'])
+
+
 def main():
     args = params()
-    d = 3
     if args.data == 'tumor':
         x_train, x_test, y_train, y_test, x_hold, y_hold = load_tumor()
-        d = 2
         m = 'val_acc'
         mo = 'max'
         classes = 3
@@ -276,7 +333,7 @@ def main():
         mo = 'min'
         #y_tbi = (y_tbi - mean) / rnge
         print "control loaded"
-
+    d = args.d
     if args.sub > 0:
         x_train = x_train[:args.sub]
         y_train = y_train[:args.sub]
@@ -288,14 +345,16 @@ def main():
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
     lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
-
     gb = GetBest(monitor=m, verbose=0, mode=mo)
 
     if args.cnn:
         if d == 2:
-            c_model = cnn_model()
+            model = cnn_model()
         else:
-            c_model = cnn_model3D()
+            model = cnn_model3D()
+        train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold,
+                          args,
+                          lr_decay, lr_red, gb)
     if args.caps:
         model, eval_model, manipulate_model, reg_model = capsnet.CapsNet(input_shape=x_train.shape[1:],
                                                               n_class=1,
@@ -316,64 +375,16 @@ def main():
                       loss_weights=[args.lam_recon, 1.],
                       metrics={'reg': 'mae'})
 
-    if args.cnn:
-        if d ==2:
-            c_model.fit(x_train, y_train,
-                      batch_size=args.batch_size,
-                      epochs=args.epochs,
-                      verbose=args.verb,
-                      callbacks=[lr_decay, gb, lr_red],
-                      validation_data=(x_test, y_test),
-                      class_weight='auto')
+    '''if args.cnn:
+        c_model.fit(x_train, y_train,
+                  batch_size=args.batch_size,
+                  epochs=args.epochs,
+                  verbose=args.verb,
+                  callbacks=[lr_decay, gb, lr_red],
+                  validation_data=(x_test, y_test),
+                  class_weight='auto')
 
-        if d ==3:
-            c_model.fit(x_train, [y_train, sex_train],
-                batch_size=args.batch_size,
-                epochs=args.epochs,
-                verbose=args.verb,
-                callbacks=[lr_decay, gb, lr_red],
-                validation_data=(x_test, [y_test, sex_test]),
-                class_weight=['auto', 'auto'])
-
-            test_pred = c_model.predict(x_test, batch_size=10)
-            hold_pred = c_model.predict(x_hold, batch_size=10)
-
-            '''tbi_pred = unnorm(tbi_pred, mean, rnge)
-            test_pred = unnorm(test_pred, mean, rnge)
-            hold_pred = unnorm(hold_pred, mean, rnge)
-
-            y_tbi = unnorm(y_tbi, mean, rnge)
-            y_test = unnorm(y_test, mean, rnge)
-            y_hold = unnorm(y_hold, mean, rnge)'''
-
-            print "Base Test:", mean_absolute_error(y_test, [np.mean(y_test)] * len(y_test))
-            print "Base Hold:", mean_absolute_error(y_hold, [np.mean(y_hold)] * len(y_hold))
-
-            if tbi:
-                tbi_pred = c_model.predict(x_tbi, batch_size=10)
-                print "Base TBI:", mean_absolute_error(y_tbi, [np.mean(y_tbi)] * len(y_tbi))
-                print "TBI MAE:", mean_absolute_error(y_tbi, tbi_pred[0])
-                print "TBI R2:", r2_score(y_tbi, tbi_pred[0])
-                #print pd.DataFrame(zip(tbi_pred, y_tbi), columns=['y_pred', 'y_true'])
-
-            print "Test MAE:", mean_absolute_error(y_test, test_pred[0])
-            print "Hold MAE:", mean_absolute_error(y_hold, hold_pred[0])
-
-            #print "Test R2:", r2_score(y_test, test_pred)
-            #print "Hold R2:", r2_score(y_hold, hold_pred)
-
-            print'Test acc:', np.sum(np.argmax(test_pred[1], 1) == np.argmax(sex_test, 1)) / float(y_test.shape[0])
-            print'Hold acc:', np.sum(np.argmax(hold_pred[1], 1) == np.argmax(sex_hold, 1)) / float(y_hold.shape[0])
-
-            print "Base Test Acc:", np.sum(np.argmax(sex_test) == 1) / len(y_test)
-            print "Base Hold Acc:", np.sum(np.argmax(sex_hold) == 1) / len(y_hold)
-
-            print test_pred[0]
-            print test_pred[1]
-
-            #print pd.DataFrame(zip(test_pred[:,1], y_test), columns=['y_pred', 'y_true'])
-        else:
-            print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]
+        print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]'''
 
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
     es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
