@@ -245,7 +245,7 @@ def cnn_model_age_sex(d=3):
         fil = (w, w)
         strides = (2, 2)
 
-    img_input = Input(shape=fil + (1,), name='input')
+    img_input = Input(shape=(dim,)*d + (1,), name='input')
 
     # --- block 1 ---
     x = conv(dim, fil, activation='relu', padding='same', name='block1_conv1')(img_input)
