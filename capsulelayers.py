@@ -188,7 +188,7 @@ def PrimaryCap(inputs, dim_capsule, n_channels, kernel_size, strides, padding, d
     """
     if d == 3:
         output = layers.Conv3D(filters=dim_capsule * n_channels, kernel_size=kernel_size, strides=strides, padding=padding,
-                           name='primarycap_conv2d')(inputs)
+                           name='primarycap_conv3d')(inputs)
     else:
         output = layers.Conv2D(filters=dim_capsule * n_channels, kernel_size=kernel_size, strides=strides,
                                padding=padding,
