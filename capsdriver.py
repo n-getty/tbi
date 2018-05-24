@@ -325,12 +325,12 @@ def unnorm(y, mean, rnge):
     return y
 
 
-def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold, args, lr_decay, lr_red, gb):
+def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold, args, calls):
     model.fit(x_train, [y_train, sex_train],
                 batch_size=args.batch_size,
                 epochs=args.epochs,
                 verbose=args.verb,
-                callbacks=[lr_decay, gb, lr_red],
+                callbacks=calls,
                 validation_data=(x_test, [y_test, sex_test]))
 
     test_pred = model.predict(x_test, batch_size=10)
@@ -374,6 +374,23 @@ def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, s
     # print pd.DataFrame(zip(test_pred[:,1], y_test), columns=['y_pred', 'y_true'])
 
 
+def caps_sex_pred(model, x_train, y_train, x_test, y_test, x_hold, y_hold, args, calls):
+
+    model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
+              validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=calls, verbose=args.verb)
+
+    w = model.get_weights()
+    print model.evaluate([x_test, y_test], [y_test, x_test], verbose=0)[3], \
+    model.evaluate([x_hold, y_hold], [y_hold, x_hold], verbose=0)[3]
+
+    y_pred, _ = model.predict(x_test, batch_size=100)
+    print np.argmax(y_pred, 1), np.argmax(y_test, 1)
+    print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1)) / float(y_test.shape[0]))
+
+    y_pred, _ = model.predict(x_hold, batch_size=100)
+    print('Hold acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
+
+
 def main():
     args = params()
     d = args.d
@@ -413,10 +430,10 @@ def main():
         model = cnn_model_age_sex(d)
         train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold,
                           args,
-                          lr_decay, lr_red, gb)
+                          [lr_decay, lr_red, gb])
     if args.caps:
         model, eval_model, manipulate_model, reg_model = capsnet.CapsNet(input_shape=x_train.shape[1:],
-                                                              n_class=1,
+                                                              n_class=2,
                                                               routings=args.routings, d=d)
         # compile the model
         model.compile(optimizer=optimizers.Adam(lr=args.lr),
@@ -434,6 +451,9 @@ def main():
                       loss_weights=[args.lam_recon, 1.],
                       metrics={'reg': 'mae'})
 
+        calls = [lr_decay, lr_red, gb]
+        caps_sex_pred(model, x_train, sex_train, x_test, sex_test, x_hold, sex_hold, args, calls)
+
     '''if args.cnn:
         c_model.fit(x_train, y_train,
                   batch_size=args.batch_size,
@@ -445,29 +465,10 @@ def main():
 
         print c_model.evaluate(x_test, y_test, verbose=0)[1], c_model.evaluate(x_hold, y_hold, verbose=0)[1]'''
 
-    lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: args.lr * (args.lr_decay ** epoch))
-    es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
-    lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
-    gb = GetBest(monitor='val_capsnet_acc', verbose=0, mode='max')
-
     if args.caps:
         if d == 3:
             reg_model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
                       validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, gb], verbose=args.verb)
-        else:
-            model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
-                      validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[lr_decay, gb, lr_red], verbose=args.verb)
-
-            w = model.get_weights()
-            print model.evaluate([x_test, y_test], [y_test, x_test], verbose=0)[3], model.evaluate([x_hold, y_hold], [y_hold, x_hold], verbose=0)[3]
-
-            eval_model.set_weights(w)
-            y_pred, _ = eval_model.predict(x_test, batch_size=100)
-            print np.argmax(y_pred, 1), np.argmax(y_test, 1)
-            print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1)) / float(y_test.shape[0]))
-
-            y_pred, _ = eval_model.predict(x_hold, batch_size=100)
-            print('Hold acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
 
 
 if __name__ == '__main__':
