@@ -229,18 +229,29 @@ def cnn_model():
     return model
 
 
-def cnn_model3D():
+def cnn_model_age_sex(d):
     dim = 32
     w = 3
     img_input = Input(shape=(dim, dim, dim, 1), name='input')
 
+    if d == 3:
+        conv = Conv3D
+        pool = MaxPooling3D
+        fil = (w,w,w)
+        strides = (2,2,2)
+    else:
+        conv = Conv2D
+        pool = MaxPooling2D
+        fil = (w, w)
+        strides = (2, 2)
+
     # --- block 1 ---
-    x = Conv3D(dim, (w,w,w), activation='relu', padding='same', name='block1_conv1')(img_input)
+    x = conv(dim, fil, activation='relu', padding='same', name='block1_conv1')(img_input)
     x = BatchNormalization()(x)
-    x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block1_pool')(x)
-    x = Conv3D(dim, (w,w,w), activation='relu', padding='same', name='block2_conv1')(x)
+    x = pool(strides, strides=strides, name='block1_pool')(x)
+    x = conv(dim, fil, activation='relu', padding='same', name='block2_conv1')(x)
     x = BatchNormalization()(x)
-    x = MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block2_pool')(x)
+    x = pool(strides, strides=strides, name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
     x = Dense(400, activation='relu', name='fc_1')(x)
     #x = BatchNormalization()(x)
@@ -349,10 +360,7 @@ def main():
     gb = GetBest(monitor=m, verbose=0, mode=mo)
 
     if args.cnn:
-        if d == 2:
-            model = cnn_model()
-        else:
-            model = cnn_model3D()
+        model = cnn_model_age_sex()
         train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold,
                           args,
                           lr_decay, lr_red, gb)
