@@ -229,9 +229,8 @@ def cnn_model():
     return model
 
 
-def cnn_model_age_sex(d=3):
-    dim = 64
-    w = 5
+def cnn_model_age_sex(d=3, dim=64):
+    w = 3
 
     if d == 3:
         conv = Conv3D
@@ -326,12 +325,12 @@ def unnorm(y, mean, rnge):
 
 
 def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold, args, calls):
-    model.fit(x_train, [sex_train, x_train],
+    model.fit(x_train, [y_train, sex_train],
                 batch_size=args.batch_size,
                 epochs=args.epochs,
                 verbose=args.verb,
                 callbacks=calls,
-                validation_data=(x_test, [sex_test, x_test]))
+                validation_data=(x_test, [y_test, sex_test]))
 
     test_pred = model.predict(x_test, batch_size=10)
     hold_pred = model.predict(x_hold, batch_size=10)
@@ -426,7 +425,7 @@ def main():
     gb = GetBest(monitor=m, verbose=0, mode=mo)
 
     if args.cnn:
-        model = cnn_model_age_sex(d)
+        model = cnn_model_age_sex(d, args.dim)
         train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold,
                           args,
                           [lr_decay, lr_red, gb])
