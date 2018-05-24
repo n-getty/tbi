@@ -330,7 +330,8 @@ def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, s
                 epochs=args.epochs,
                 verbose=args.verb,
                 callbacks=[lr_decay, gb, lr_red],
-                validation_data=(x_test, [y_test, sex_test]))
+                validation_data=(x_test, [y_test, sex_test]),
+                loss_weights=[.75, .25])
 
     test_pred = model.predict(x_test, batch_size=10)
     hold_pred = model.predict(x_hold, batch_size=10)
