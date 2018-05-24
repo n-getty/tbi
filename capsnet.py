@@ -44,10 +44,11 @@ def CapsNet(input_shape, n_class, routings, d):
     # Layer 4: This is an auxiliary layer to replace each capsule with its length. Just to match the true label's shape.
     # If using tensorflow, this will not be necessary. :)
     out_caps = Length(name='capsnet')(digitcaps)
-
-    out_reg = Length(name='capsreg')(digitcaps)
-    out_reg = layers.Dense(8, activation='relu')(out_reg)
-    reg_pred = layers.Dense(1, activation='linear', name='reg')(out_reg)
+    reg = 0
+    if reg:
+        out_reg = Length(name='capsreg')(digitcaps)
+        out_reg = layers.Dense(8, activation='relu')(out_reg)
+        reg_pred = layers.Dense(1, activation='linear', name='reg')(out_reg)
 
     # Decoder network.
     y = layers.Input(shape=(n_class,))
@@ -65,7 +66,10 @@ def CapsNet(input_shape, n_class, routings, d):
     train_model = models.Model([x, y], [out_caps, decoder(masked_by_y)])
     eval_model = models.Model(x, [out_caps, decoder(masked)])
 
-    reg_model = models.Model([x, y], [reg_pred, decoder(digitcaps)])
+    reg_model = None
+    if reg:
+        reg_model = models.Model([x, y], [reg_pred, decoder(digitcaps)])
+        
     #reg_eval = models.Model(x, [reg_pred, decoder(masked)])
 
     # manipulate model
