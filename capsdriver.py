@@ -315,6 +315,7 @@ def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, s
 
 def main():
     args = params()
+    d = args.d
     if args.data == 'tumor':
         x_train, x_test, y_train, y_test, x_hold, y_hold = load_tumor()
         m = 'val_acc'
@@ -325,7 +326,7 @@ def main():
     if args.data == 'control':
         print "loading control"
         classes = 10
-        x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control()
+        x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control(d)
         tbi = False
         if tbi:
             x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
@@ -333,7 +334,7 @@ def main():
         mo = 'min'
         #y_tbi = (y_tbi - mean) / rnge
         print "control loaded"
-    d = args.d
+
     if args.sub > 0:
         x_train = x_train[:args.sub]
         y_train = y_train[:args.sub]
