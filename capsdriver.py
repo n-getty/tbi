@@ -123,9 +123,9 @@ def load_tumor():
     return x_train, x_test[:-300], y_train, y_test[:-300], x_test[-300:], y_test[-300:]
 
 
-def load_tbi(target='Age'):
-    # load data
-    imgs = mri.load_imgs()
+def load_tbi(dim, target='Age'):
+    print "loading tbi data"
+    imgs = mri.load_imgs(dim)
 
     #match_df = mri.load_target('CT_Intracraniallesion_FIN')
 
@@ -135,7 +135,7 @@ def load_tbi(target='Age'):
 
     y = pd.get_dummies(y)
 
-    X = X.reshape(len(X), 64, 64, 64, 1)
+    X = X.reshape(len(X), dim, dim, dim, 1)
 
     #mean = np.mean(y)
     #rnge = max(y) - min(y)
@@ -435,7 +435,7 @@ def main():
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control(d, args.dim)
         tbi = True
         if tbi:
-            tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest = load_tbi()
+            tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest = load_tbi(args.dim, "CT_Intracraniallesion_FIN")
         #m = 'val_pred_mean_absolute_error'
         #mo = 'min'
         m = 'val_acc'

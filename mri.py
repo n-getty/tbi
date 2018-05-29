@@ -68,7 +68,7 @@ def cnn_model(n_classes=1):
         ls = 'mean_absolute_error'
         m = [metrics.mae]
     else:
-        ac = 'softmax'
+        ac = 'CT_Intracraniallesion_FIN'
         ls = 'categorical_crossentropy'
         #ls = 'binary_crossentropy'
         m = ['accuracy']
@@ -91,7 +91,7 @@ def cnn_model(n_classes=1):
     return model
 
 
-def load_imgs():
+def load_imgs(dim=64):
     path = '/vol/ml/track-tbi/TBI-Data/TRACKPilotNiiData/'
     data = {}
     for subdir, dirs, files in os.walk(path):
@@ -103,7 +103,7 @@ def load_imgs():
                 img_data = img.get_data()
                 # Take last image
                 img_data = img_data[:,:,:,-1]
-                img_data = resize(img_data, (64, 64, 64))
+                img_data = resize(img_data, (dim, dim, dim))
                 data[name[6:]] = img_data
 
                 # Take aggregate image
