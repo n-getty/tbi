@@ -433,7 +433,7 @@ def main():
         print "loading control"
         classes = 10
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control(d, args.dim)
-        tbi = False
+        tbi = True
         if tbi:
             tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest = load_tbi()
         #m = 'val_pred_mean_absolute_error'
