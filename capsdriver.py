@@ -123,25 +123,27 @@ def load_tumor():
     return x_train, x_test[:-300], y_train, y_test[:-300], x_test[-300:], y_test[-300:]
 
 
-def load_tbi():
+def load_tbi(target='Age'):
     # load data
     imgs = mri.load_imgs()
 
     #match_df = mri.load_target('CT_Intracraniallesion_FIN')
 
-    match_df = mri.load_target('Age')
+    match_df = mri.load_target(target)
 
     X, y = mri.match_image_ids(imgs, match_df)
 
+    y = pd.get_dummies(y)
+
     X = X.reshape(len(X), 64, 64, 64, 1)
 
-    mean = np.mean(y)
-    rnge = max(y) - min(y)
+    #mean = np.mean(y)
+    #rnge = max(y) - min(y)
     #y = (y - mean) / rnge
 
-    #x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
+    x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
 
-    return X, y, mean, rnge
+    return x_train, x_test, y_train, y_test
 
 
 def load_control(d=3, dim=64):
@@ -205,16 +207,30 @@ def load_control(d=3, dim=64):
     return x_train, x_test[:68], y_train, y_test[:68], x_test[68:], y_test[68:], mean, rnge, bin_train, bin_test[:68], bin_test[68:], sex_train, sex_test[:68], sex_test[68:]
 
 
-def cnn_model():
-    img_input = Input(shape=(64, 64, 1), name='input')
+def cnn_model(d=3, dim=64):
+
+    w = 3
+    if d == 3:
+        conv = Conv3D
+        pool = MaxPooling3D
+        fil = (w,w,w)
+        strides = (2,2,2)
+    else:
+        conv = Conv2D
+        pool = MaxPooling2D
+        fil = (w, w)
+        strides = (2, 2)
 
     # --- block 1 ---
-    x = Conv2D(64, (5, 5), activation='relu', padding='same', name='block1_conv1')(img_input)
+    img_input = Input(shape=(dim,) * d + (1,), name='input')
+
+    # --- block 1 ---
+    x = conv(dim, fil, activation='relu', padding='same', name='block1_conv1')(img_input)
     x = BatchNormalization()(x)
-    x = MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
-    x = Conv2D(64, (5, 5), activation='relu', padding='same', name='block2_conv1')(x)
+    x = pool(strides, strides=strides, name='block1_pool')(x)
+    x = conv(dim, fil, activation='relu', padding='same', name='block2_conv1')(x)
     x = BatchNormalization()(x)
-    x = MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
+    x = pool(strides, strides=strides, name='block2_pool')(x)
     x = Flatten(name='flatten')(x)
     x = Dense(800, activation='relu', name='fc_1')(x)
     x = BatchNormalization()(x)
@@ -222,8 +238,8 @@ def cnn_model():
     x = Dense(800, activation='relu', name='fc_2')(x)
     x = BatchNormalization()(x)
     #x = Dropout(0.8)(x)
-    pred = Dense(3, activation='sigmoid', name='pred')(x)
-    model = Model(img_input, pred, name='mri_regressor')
+    pred = Dense(2, activation='softmax', name='pred')(x)
+    model = Model(img_input, pred, name='mri_lesion')
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     return model
@@ -389,6 +405,20 @@ def caps_sex_pred(model, x_train, y_train, x_test, y_test, x_hold, y_hold, args,
     print('Hold acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
 
 
+def pred_tbi_wcontrol(model, tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest, x_train, args, calls):
+    print tbi_ytest
+    y_train = [[1, 0]] * len(x_train)
+
+    x_train = np.concatenate([tbi_xtrain, x_train])
+    y_train = np.concatenate([tbi_ytrain, y_train])
+    model.fit(x_train, y_train,
+              batch_size=args.batch_size,
+              epochs=args.epochs,
+              verbose=args.verb,
+              callbacks=calls,
+              validation_data=(tbi_xtest, tbi_ytest))
+
+
 def main():
     args = params()
     d = args.d
@@ -405,9 +435,11 @@ def main():
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control(d, args.dim)
         tbi = False
         if tbi:
-            x_tbi, y_tbi, tbi_mean, tbi_rnge = load_tbi()
-        m = 'val_pred_mean_absolute_error'
-        mo = 'min'
+            tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest = load_tbi()
+        #m = 'val_pred_mean_absolute_error'
+        #mo = 'min'
+        m = 'val_acc'
+        mo = 'max'
         #y_tbi = (y_tbi - mean) / rnge
         print "control loaded"
 
@@ -425,10 +457,14 @@ def main():
     gb = GetBest(monitor=m, verbose=0, mode=mo)
 
     if args.cnn:
-        model = cnn_model_age_sex(d, args.dim)
-        train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold,
-                          args,
-                          [lr_decay, lr_red, gb])
+        if tbi:
+            model = cnn_model(d, args.dim)
+            pred_tbi_wcontrol(model, tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest, x_train, args, [lr_decay, lr_red, gb])
+        else:
+            model = cnn_model_age_sex(d, args.dim)
+            train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, sex_train, sex_test, sex_hold,
+                              args,
+                              [lr_decay, lr_red, gb])
     if args.caps:
         model, eval_model, manipulate_model, reg_model = capsnet.CapsNet(input_shape=x_train.shape[1:],
                                                               n_class=2,
