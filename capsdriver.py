@@ -168,6 +168,7 @@ def load_control(d=3, dim=64):
     else:
         X = np.stack(X).reshape(len(X), dim, dim, 1)
 
+    print "loading control target"
     infile = 'data/control.csv'
     df = pd.read_csv(infile, usecols=['Subject', 'Age', 'Sex', 'Description'])
     df = df.loc[df.Description == 'MP-RAGE']
