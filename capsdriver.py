@@ -133,8 +133,6 @@ def load_tbi(dim, target='Age'):
 
     X, y = mri.match_image_ids(imgs, match_df)
 
-    y = pd.get_dummies(y)
-
     X = X.reshape(len(X), dim, dim, dim, 1)
 
     #mean = np.mean(y)
@@ -423,6 +421,7 @@ def pred_tbi_wcontrol(model, tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest, x_tra
 def main():
     args = params()
     d = args.d
+    load_tbi(3, "CT_Intracraniallesion_FIN")
     if args.data == 'tumor':
         x_train, x_test, y_train, y_test, x_hold, y_hold = load_tumor()
         m = 'val_acc'
