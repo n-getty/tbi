@@ -139,7 +139,7 @@ def load_tbi(dim, target='Age'):
     #rnge = max(y) - min(y)
     #y = (y - mean) / rnge
 
-    x_train, x_test, y_train, y_test = mri.get_split(X, y, 2)
+    x_train, x_test, y_train, y_test = mri.get_split(X, y, 2, dim)
 
     return x_train, x_test, y_train, y_test
 
