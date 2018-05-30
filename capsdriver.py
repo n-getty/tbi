@@ -405,7 +405,6 @@ def caps_sex_pred(model, x_train, y_train, x_test, y_test, x_hold, y_hold, args,
 
 
 def pred_tbi_wcontrol(model, tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest, x_train, args, calls):
-    print tbi_ytest
     y_train = [[1, 0]] * len(x_train)
 
     x_train = np.concatenate([tbi_xtrain, x_train])
@@ -427,7 +426,8 @@ def main():
         mo = 'max'
         classes = 3
     if args.data == 'tbi':
-        x_train, x_test, y_train, y_test, X, y = load_tbi()
+        x_train, x_test, y_train, y_test = load_tbi(args.dim, "CT_Intracraniallesion_FIN")
+        print y_train
     if args.data == 'control':
         print "loading control"
         classes = 10
