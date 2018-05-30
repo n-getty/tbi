@@ -176,8 +176,8 @@ def get_split(X, y, n_classes, dim=64):
 
     X_train, X_test, y_train, y_test, train_idx, test_idx = tts_split
 
-    X_train = X_train.reshape((X_train.shape[0], dim, dim, 35, 1))
-    X_test = X_test.reshape((X_test.shape[0], dim, dim, 35, 1))
+    X_train = X_train.reshape((X_train.shape[0], dim, dim, dim, 1))
+    X_test = X_test.reshape((X_test.shape[0], dim, dim, dim, 1))
 
     return X_train, X_test, y_train, y_test
 
