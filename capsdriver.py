@@ -405,7 +405,7 @@ def caps_sex_pred(model, x_train, y_train, x_test, y_test, x_hold, y_hold, args,
 
 
 def pred_tbi_wcontrol(model, tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest, x_train, args, calls):
-    y_train = [[1, 0]] * len(x_train)
+    y_train = np.array([[1, 0]] * len(x_train))
 
     x_train = np.concatenate([tbi_xtrain, x_train])
     y_train = np.concatenate([tbi_ytrain, y_train])
@@ -427,20 +427,13 @@ def main():
         classes = 3
     if args.data == 'tbi':
         x_train, x_test, y_train, y_test = load_tbi(args.dim, "CT_Intracraniallesion_FIN")
-        y_train2 = np.array([[1, 0]] * len(y_train))
-        y_train3 = [[1, 0]] * len(y_train)
-        print y_train.shape
-        print y_train2.shape
-        np.concatenate([y_train, y_train2])
-        np.concatenate([y_train, y_train3])
-        exit(0)
     if args.data == 'control':
         print "loading control"
         classes = 10
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control(d, args.dim)
         tbi = True
         if tbi:
-            tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest = load_tbi(args.dim, "CT_Intracraniallesion_FIN")
+            tbi_xtrain, tbi_xtest, tbi_ytrain, tbi_ytest = load_tbi(args.dim, "CT_Intracraniallesion_FIN")
         #m = 'val_pred_mean_absolute_error'
         #mo = 'min'
         m = 'val_acc'
