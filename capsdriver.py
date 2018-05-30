@@ -427,7 +427,13 @@ def main():
         classes = 3
     if args.data == 'tbi':
         x_train, x_test, y_train, y_test = load_tbi(args.dim, "CT_Intracraniallesion_FIN")
-        print y_train
+        y_train2 = np.array([[1, 0]] * len(y_train))
+        y_train3 = [[1, 0]] * len(y_train)
+        print y_train.shape
+        print y_train2.shape
+        np.concatenate(y_train, y_train2)
+        np.concatenate(y_train, y_train3)
+        exit(0)
     if args.data == 'control':
         print "loading control"
         classes = 10
