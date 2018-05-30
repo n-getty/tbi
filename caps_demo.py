@@ -348,7 +348,6 @@ def set_seed(seed):
     random.seed(seed)
 
     if K.backend() == 'tensorflow':
-        import tensorflow as tf
         tf.set_random_seed(seed)
 
 
@@ -464,6 +463,8 @@ def params():
                         help="Train/retrain the loaded model?")
     parser.add_argument('--type', default=None, type=int,
                         help="Tumor type to manipulate")
+    parser.add_argument('-seed', default=42, type=int,
+                        help="Seed to use")
     args = parser.parse_args()
 
     if not os.path.exists(args.save_dir):
@@ -558,7 +559,7 @@ def manipulate_latent(model, data, args):
 
 def main():
     args = params()
-    set_seed(42)
+    set_seed(args.seed)
 
     X_train, X_test, y_train, y_test, X_hold, y_hold, test_recon = load_tumor()
     model, eval_model, manipulate_model = get_models(args, X_train.shape[1:])

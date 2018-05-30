@@ -421,7 +421,6 @@ def pred_tbi_wcontrol(model, tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest, x_tra
 def main():
     args = params()
     d = args.d
-    load_tbi(3, "CT_Intracraniallesion_FIN")
     if args.data == 'tumor':
         x_train, x_test, y_train, y_test, x_hold, y_hold = load_tumor()
         m = 'val_acc'
