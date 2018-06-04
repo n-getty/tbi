@@ -390,17 +390,21 @@ def train_age_sex_cnn(model, x_train, y_train, x_test, y_test, x_hold, y_hold, s
 
 def caps_sex_pred(model, x_train, y_train, x_test, y_test, x_hold, y_hold, args, calls):
 
+    print "Base Train Acc:", np.sum(np.argmax(y_train, 1) == 1) / float(len(y_train))
+    print "Base Test Acc:", np.sum(np.argmax(y_test, 1) == 1) / float(len(y_test))
+    print "Base Hold Acc:", np.sum(np.argmax(y_hold, 1) == 1) / float(len(y_hold))
+    
     model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
               validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=calls, verbose=args.verb)
 
     print model.evaluate([x_test, y_test], [y_test, x_test], verbose=0)[3], \
     model.evaluate([x_hold, y_hold], [y_hold, x_hold], verbose=0)[3]
 
-    y_pred, _ = model.predict(x_test, batch_size=100)
+    y_pred, _ = model.predict(x_test, batch_size=15)
     print np.argmax(y_pred, 1), np.argmax(y_test, 1)
     print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1)) / float(y_test.shape[0]))
 
-    y_pred, _ = model.predict(x_hold, batch_size=100)
+    y_pred, _ = model.predict(x_hold, batch_size=15)
     print('Hold acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
 
 
@@ -409,6 +413,7 @@ def pred_tbi_wcontrol(model, tbi_xtrain, tbi_ytrain, tbi_xtest, tbi_ytest, x_tra
 
     x_train = np.concatenate([tbi_xtrain, x_train])
     y_train = np.concatenate([tbi_ytrain, y_train])
+
     model.fit(x_train, y_train,
               batch_size=args.batch_size,
               epochs=args.epochs,
@@ -431,9 +436,12 @@ def main():
         print "loading control"
         classes = 10
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control(d, args.dim)
+        print "Control train image shape:", x_train.shape
         tbi = True
         if tbi:
             tbi_xtrain, tbi_xtest, tbi_ytrain, tbi_ytest = load_tbi(args.dim, "CT_Intracraniallesion_FIN")
+
+        print "Tbi train image shape:", tbi_xtrain.shape
         #m = 'val_pred_mean_absolute_error'
         #mo = 'min'
         m = 'val_acc'
