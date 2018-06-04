@@ -393,7 +393,7 @@ def caps_sex_pred(model, x_train, y_train, x_test, y_test, x_hold, y_hold, args,
     print "Base Train Acc:", np.sum(np.argmax(y_train, 1) == 1) / float(len(y_train))
     print "Base Test Acc:", np.sum(np.argmax(y_test, 1) == 1) / float(len(y_test))
     print "Base Hold Acc:", np.sum(np.argmax(y_hold, 1) == 1) / float(len(y_hold))
-    
+
     model.fit([x_train, y_train], [y_train, x_train], batch_size=args.batch_size, epochs=args.epochs,
               validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=calls, verbose=args.verb)
 
@@ -437,7 +437,7 @@ def main():
         classes = 10
         x_train, x_test, y_train, y_test, x_hold, y_hold, mean, rnge, bin_train, bin_test, bin_hold, sex_train, sex_test, sex_hold = load_control(d, args.dim)
         print "Control train image shape:", x_train.shape
-        tbi = True
+        tbi = False
         if tbi:
             tbi_xtrain, tbi_xtest, tbi_ytrain, tbi_ytest = load_tbi(args.dim, "CT_Intracraniallesion_FIN")
 
