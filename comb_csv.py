@@ -9,7 +9,7 @@ demos = []
 for root, dirnames, filenames in os.walk(fn):
     for filename in fnmatch.filter(filenames, '*.txt'):
         file = os.path.join(root, filename)
-        df = pd.read_csv(file, usecols=[0,2,3], names=['ID', 'Age', 'Sex'])
+        df = pd.read_csv(file, usecols=[0,2,3], names=['ID', 'Age', 'Sex'], delimiter='\t')
         demos.append(df)
 
 demos = pd.concat(demos)
