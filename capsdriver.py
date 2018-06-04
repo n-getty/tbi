@@ -440,8 +440,8 @@ def main():
         tbi = False
         if tbi:
             tbi_xtrain, tbi_xtest, tbi_ytrain, tbi_ytest = load_tbi(args.dim, "CT_Intracraniallesion_FIN")
-
-        print "Tbi train image shape:", tbi_xtrain.shape
+            print "Tbi train image shape:", tbi_xtrain.shape
+            
         #m = 'val_pred_mean_absolute_error'
         #mo = 'min'
         m = 'val_acc'
