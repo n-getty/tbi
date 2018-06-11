@@ -21,6 +21,7 @@ from GetBest import GetBest
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from sklearn.metrics import mean_absolute_error, r2_score
 from collections import defaultdict
+import densenet
 
 
 def params():
@@ -48,6 +49,8 @@ def params():
                         help="Use cross validation")
     parser.add_argument('--cnn', action='store_true',
                         help="Use cnn model")
+    parser.add_argument('--dense', action='store_true',
+                        help="Use dense model")
     parser.add_argument('--caps', action='store_true',
                         help="Use caps model")
     parser.add_argument('--save_dir', default='./result')
@@ -441,13 +444,14 @@ def main():
         if tbi:
             tbi_xtrain, tbi_xtest, tbi_ytrain, tbi_ytest = load_tbi(args.dim, "CT_Intracraniallesion_FIN")
             print "Tbi train image shape:", tbi_xtrain.shape
-            
+
         #m = 'val_pred_mean_absolute_error'
         #mo = 'min'
         m = 'val_acc'
         mo = 'max'
         #y_tbi = (y_tbi - mean) / rnge
         print "control loaded"
+
 
     if args.sub > 0:
         x_train = x_train[:args.sub]
@@ -461,6 +465,26 @@ def main():
     # es = callbacks.EarlyStopping(min_delta=0.001, patience=10, verbose=0)
     lr_red = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
     gb = GetBest(monitor=m, verbose=0, mode=mo)
+
+    if args.dense:
+        model = densenet.DenseNet(classes=3, input_shape=(args.dim,)*d, depth=40, growth_rate=12,
+                                  bottleneck=True, reduction=0.5)
+
+        model.fit(x_train, y_train,
+                  batch_size=args.batch_size,
+                  epochs=args.epochs,
+                  verbose=args.verb,
+                  callbacks=[lr_decay, gb, lr_red],
+                  validation_data=(x_test, y_test),
+                  class_weight='auto')
+
+        y_pred, _ = model.predict(x_test, batch_size=args.batch_size)
+        y_pred = np.argmax(y_pred, 1)
+        print('Test acc:', np.sum(y_pred == np.argmax(y_test, 1)) / float(y_test.shape[0]))
+
+        y_hold_pred, _ = model.predict(x_hold, batch_size=args.batch_size)
+        y_hold_pred = np.argmax(y_hold_pred, 1)
+        print('Hold acc:', np.sum(y_hold_pred == np.argmax(y_hold, 1)) / float(y_hold.shape[0]))
 
     if args.cnn:
         if tbi:
