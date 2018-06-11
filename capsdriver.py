@@ -470,6 +470,8 @@ def main():
         model = densenet.DenseNet(classes=3, input_shape=(64,64,1), depth=40, growth_rate=12,
                                   bottleneck=True, reduction=0.5)
 
+        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        
         model.fit(x_train, y_train,
                   batch_size=args.batch_size,
                   epochs=args.epochs,
