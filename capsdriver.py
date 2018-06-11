@@ -467,7 +467,7 @@ def main():
     gb = GetBest(monitor=m, verbose=0, mode=mo)
 
     if args.dense:
-        model = densenet.DenseNet(classes=3, input_shape=(args.dim,)*d, depth=40, growth_rate=12,
+        model = densenet.DenseNet(classes=3, input_shape=(64,64,1), depth=40, growth_rate=12,
                                   bottleneck=True, reduction=0.5)
 
         model.fit(x_train, y_train,
