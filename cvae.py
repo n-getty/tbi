@@ -24,6 +24,8 @@ df = df.infer_objects()
 # Drop the patient id
 df = df.drop('PatientNum', axis=1)
 
+df = df.replace(np.nan, -1)
+
 for c in df.select_dtypes(exclude=[np.number]):
     df[c] = pd.to_numeric(df[c], errors='ignore')
 
@@ -34,7 +36,6 @@ outcome_vars = ['GOSE', 'Neuro', 'Post', 'BSI', 'SWL', 'RPQ', 'CHARTS', 'TMT', '
 #y = df['admGCS']
 y = df[df.columns[pd.Series(df.columns).str.lower().str.contains('admgcs')]]
 
-y = y.replace(np.nan, 0)
 
 X = []
 for pre in outcome_vars:
