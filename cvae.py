@@ -53,7 +53,7 @@ X_train, X_test, y_train, y_test = tts_split
 X_train = X_train[:400]
 y_train = y_train[:400]
 
-y_test = X_test[:100]
+y_test = y_test[:100]
 X_test = X_test[:100]
 
 # dimension of input (and label)
