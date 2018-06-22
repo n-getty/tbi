@@ -90,7 +90,7 @@ z_cond = concatenate([z, cond])
 
 # dense ReLU to sigmoid layers
 decoder_hidden = Dense(512, activation='relu')
-decoder_out = Dense(784, activation='sigmoid')
+decoder_out = Dense(n_x, activation='sigmoid')
 h_p = decoder_hidden(z_cond)
 outputs = decoder_out(h_p)
 
