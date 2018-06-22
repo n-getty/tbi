@@ -6,8 +6,6 @@ from keras import backend as K
 from keras.datasets import mnist
 from keras.utils import to_categorical
 from keras.callbacks import EarlyStopping
-from scipy.misc import imsave
-from prelim import get_X
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
