@@ -20,9 +20,10 @@ n_z = 50
 infile = 'data/TRACKTBI_Pilot_DEID_02.22.18v2.csv'
 
 df = pd.read_csv(infile, delimiter=",", na_values = ['', ' ', 'Untestable', 'QNS', 'NR', 'Unknown', 'Unk'])
-
+df = df.infer_objects()
 # Drop the patient id
 df = df.drop('PatientNum', axis=1)
+df.select_dtypes(include=[np.number])
 
 outcome_vars = ['GOSE', 'Neuro', 'Post', 'BSI', 'SWL', 'RPQ', 'CHARTS', 'TMT', 'PCL', 'PTSD', 'WAIS', 'CVLT', 'FIM']
 
@@ -47,6 +48,9 @@ X_train, X_test, y_train, y_test = tts_split
 # dimension of input (and label)
 n_x = X_train.shape[1]
 n_y = y_train.shape[1]
+
+print("Outcome space:", n_x)
+print("Condition space:", n_y)
 
 # nubmer of epochs
 n_epoch = 10
