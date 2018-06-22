@@ -54,7 +54,7 @@ n_epoch = 10
 ##  ENCODER ##
 
 # encoder inputs
-X = Input(shape=(784,))
+X = Input(shape=(n_x,))
 cond = Input(shape=(n_y,))
 
 # merge pixel representation and label
