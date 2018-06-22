@@ -69,9 +69,9 @@ cond = Input(shape=(n_y,))
 inputs = concatenate([X, cond])
 
 # dense ReLU layer to mu and sigma
-h_q = Dense(512, activation='relu')(inputs)
-mu = Dense(n_z, activation='linear')(h_q)
-log_sigma = Dense(n_z, activation='linear')(h_q)
+h_q = Dense(512, activation='relu', name='dense_enc1')(inputs)
+mu = Dense(n_z, activation='linear', name='dense_enc2')(h_q)
+log_sigma = Dense(n_z, activation='linear', name='dense_enc3')(h_q)
 
 
 def sample_z(args):
@@ -89,8 +89,8 @@ z_cond = concatenate([z, cond])
 ##  DECODER  ##
 
 # dense ReLU to sigmoid layers
-decoder_hidden = Dense(512, activation='relu')
-decoder_out = Dense(n_x, activation='sigmoid')
+decoder_hidden = Dense(512, activation='relu', name='dense_dec1')
+decoder_out = Dense(n_x, activation='sigmoid', name='dense_dec_out')
 h_p = decoder_hidden(z_cond)
 outputs = decoder_out(h_p)
 
