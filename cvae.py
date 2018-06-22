@@ -42,7 +42,7 @@ for pre in outcome_vars:
     tX = df[df.columns[pd.Series(df.columns).str.startswith(pre)]]
     X.append(tX)
 
-X = pd.concat(X, axis=1)
+X = pd.concat(X, axis=1).astype(np.float64)
 
 tts_split = train_test_split(
         X, y, test_size=0.25, random_state=0, stratify=y
