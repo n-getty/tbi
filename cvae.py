@@ -31,11 +31,11 @@ for c in df.select_dtypes(exclude=[np.number]):
 
 df = df.select_dtypes(include=[np.number])
 
-outcome_vars = ['GOSE', 'Neuro', 'Post', 'BSI', 'SWL', 'RPQ', 'CHARTS', 'TMT', 'PCL', 'PTSD', 'WAIS', 'CVLT', 'FIM']
+outcome_vars = ['GOSE', 'Neuro', 'Post', 'BSI', 'SWL', 'RPQ', 'CHARTS', 'TMT', 'PCL', 'PTSD', 'WAIS'#, 'CVLT', 'FIM'
+                ]
 
 #y = df['admGCS']
 y = df[df.columns[pd.Series(df.columns).str.lower().str.contains('admgcs')]]
-
 
 X = []
 for pre in outcome_vars:
@@ -132,6 +132,7 @@ def recon_loss(y_true, y_pred):
 # compile and fit
 cvae.compile(optimizer=optim, loss=vae_loss, metrics=[#KL_loss,
                                                       recon_loss])
+
 cvae_hist = cvae.fit([X_train, y_train], X_train, batch_size=m, epochs=n_epoch,
                      validation_data=([X_test, y_test], X_test),
                      callbacks=[EarlyStopping(patience=5)])
