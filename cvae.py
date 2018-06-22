@@ -24,7 +24,7 @@ df = df.infer_objects()
 # Drop the patient id
 df = df.drop('PatientNum', axis=1)
 
-df = df.replace(np.nan, -1)
+df = df.replace(np.nan, 0.0)
 
 for c in df.select_dtypes(exclude=[np.number]):
     df[c] = pd.to_numeric(df[c], errors='ignore')
