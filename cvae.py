@@ -50,6 +50,12 @@ tts_split = train_test_split(
 
 X_train, X_test, y_train, y_test = tts_split
 
+X_train = X_train[:400]
+y_train = y_train[:400]
+
+y_test = X_test[:100]
+X_test = X_test[:100]
+
 # dimension of input (and label)
 n_x = X_train.shape[1]
 n_y = y_train.shape[1]
@@ -77,7 +83,7 @@ log_sigma = Dense(n_z, activation='linear', name='dense_enc3')(h_q)
 
 def sample_z(args):
     mu, log_sigma = args
-    eps = K.random_normal(shape=(n_z,), mean=0., stddev=1.)
+    eps = K.random_normal(shape=(m,n_z), mean=0., stddev=1.)
     return mu + K.exp(log_sigma / 2) * eps
 
 
