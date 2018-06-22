@@ -27,7 +27,7 @@ df = df.drop('PatientNum', axis=1)
 for c in df.select_dtypes(exclude=[np.number]):
     df[c] = pd.to_numeric(df[c], errors='ignore')
 
-df.select_dtypes(include=[np.number])
+df = df.select_dtypes(include=[np.number])
 
 outcome_vars = ['GOSE', 'Neuro', 'Post', 'BSI', 'SWL', 'RPQ', 'CHARTS', 'TMT', 'PCL', 'PTSD', 'WAIS', 'CVLT', 'FIM']
 
