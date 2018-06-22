@@ -26,9 +26,11 @@ df = df.drop('PatientNum', axis=1)
 
 outcome_vars = ['GOSE', 'Neuro', 'Post', 'BSI', 'SWL', 'RPQ', 'CHARTS', 'TMT', 'PCL', 'PTSD', 'WAIS', 'CVLT', 'FIM']
 
-y = df['admGCS']
+#y = df['admGCS']
+y = df[df.columns[pd.Series(df.columns).str.lower().str.contains('admgcs')]]
 
 y = y.replace(np.nan, 0)
+
 X = []
 for pre in outcome_vars:
     tX = df[df.columns[pd.Series(df.columns).str.startswith(pre)]]
