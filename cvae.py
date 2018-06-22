@@ -77,7 +77,7 @@ log_sigma = Dense(n_z, activation='linear', name='dense_enc3')(h_q)
 
 def sample_z(args):
     mu, log_sigma = args
-    eps = K.random_normal(shape=(m, n_z), mean=0., stddev=1.)
+    eps = K.random_normal(shape=(n_z,), mean=0., stddev=1.)
     return mu + K.exp(log_sigma / 2) * eps
 
 
@@ -124,10 +124,12 @@ def recon_loss(y_true, y_pred):
 
 
 # compile and fit
-cvae.compile(optimizer=optim, loss=vae_loss, metrics=[KL_loss, recon_loss])
+cvae.compile(optimizer=optim, loss=vae_loss, metrics=[#KL_loss,
+                                                      recon_loss])
 cvae_hist = cvae.fit([X_train, y_train], X_train, batch_size=m, epochs=n_epoch,
                      validation_data=([X_test, y_test], X_test),
                      callbacks=[EarlyStopping(patience=5)])
+
 
 
 
