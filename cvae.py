@@ -28,6 +28,7 @@ outcome_vars = ['GOSE', 'Neuro', 'Post', 'BSI', 'SWL', 'RPQ', 'CHARTS', 'TMT', '
 
 y = df['admGCS']
 
+y = y.replace(np.nan, 0)
 X = []
 for pre in outcome_vars:
     tX = df[df.columns[pd.Series(df.columns).str.startswith(pre)]]
