@@ -103,7 +103,7 @@ def load_imgs(dim=64):
                 img_data = img.get_data()
                 # Take last image
                 img_data = img_data[:,:,:,-1]
-                img_data = resize(img_data, (dim, dim, dim))
+                #img_data = resize(img_data, (dim, dim, dim))
                 data[name[6:]] = img_data
 
                 # Take aggregate image
