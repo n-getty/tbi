@@ -396,6 +396,9 @@ def load_tumor():
         pid = str(''.join([six.unichr(x[0]) for x in p]))
         img = np.array(f.get('cjdata/image'))
         img = scipy.misc.imresize(img, (64, 64))
+        img = (img.astype('float32') / 65535)
+        img *= (255.0 / img.max())
+        img = np.round(img)
         l = [0, 0, 0]
         l[label - 1] = 1
         p_imgs[pid].append(img)
@@ -414,7 +417,7 @@ def load_tumor():
     for id in pX_train:
         x = p_imgs[id]
         y_train.extend([p_type[id]] * len(x))
-        x = np.stack(x).reshape(len(x), 64, 64, 1).astype('float64') / 255
+        x = np.stack(x).reshape(len(x), 64, 64, 1)#.astype('float64') / 255
         X_train.extend(x)
 
     for id in pX_test:
@@ -426,7 +429,7 @@ def load_tumor():
         p_recon = ([len(X_test), rge], p_type[id])
         test_recon.append(p_recon)
         y_test.extend([p_type[id]] * len(x))
-        x = np.stack(x).reshape(len(x), 64, 64, 1).astype('float64') / 255
+        x = np.stack(x).reshape(len(x), 64, 64, 1)#.astype('float64') / 255
         X_test.extend(x)
 
     X_train = np.array(X_train)
